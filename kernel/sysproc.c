@@ -93,13 +93,16 @@ sys_uptime(void)
 }
 
 // trace function
-int sys_trace(void) {
+uint64 sys_trace(void) {
     int mask;
-    if (argint(0, &mask) < 0) {
-        return -1;
-    }
+
+    // Lấy đối số syscall vào biến mask
+    argint(0, &mask);
+
+    // Cập nhật trace_mask cho tiến trình hiện tại
     struct proc *p = myproc();
-    p->trace_mask = mask;  // Lưu mask vào cấu trúc proc của tiến trình hiện tại
+    p->trace_mask = mask;
+
     return 0;
 }
 
