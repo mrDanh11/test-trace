@@ -24,5 +24,10 @@ init:
 # char *argv[] = { init, 0 };
 .p2align 2
 argv:
+<<<<<<< HEAD
   .long init
   .long 0
+=======
+  .quad init
+  .quad 0
+>>>>>>> test-trace-2

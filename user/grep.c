@@ -2,6 +2,10 @@
 
 #include "kernel/types.h"
 #include "kernel/stat.h"
+<<<<<<< HEAD
+=======
+#include "kernel/fcntl.h"
+>>>>>>> test-trace-2
 #include "user/user.h"
 
 char buf[1024];
@@ -51,7 +55,11 @@ main(int argc, char *argv[])
   }
 
   for(i = 2; i < argc; i++){
+<<<<<<< HEAD
     if((fd = open(argv[i], 0)) < 0){
+=======
+    if((fd = open(argv[i], O_RDONLY)) < 0){
+>>>>>>> test-trace-2
       printf("grep: cannot open %s\n", argv[i]);
       exit(1);
     }
@@ -62,7 +70,12 @@ main(int argc, char *argv[])
 }
 
 // Regexp matcher from Kernighan & Pike,
+<<<<<<< HEAD
 // The Practice of Programming, Chapter 9.
+=======
+// The Practice of Programming, Chapter 9, or
+// https://www.cs.princeton.edu/courses/archive/spr09/cos333/beautiful.html
+>>>>>>> test-trace-2
 
 int matchhere(char*, char*);
 int matchstar(int, char*, char*);

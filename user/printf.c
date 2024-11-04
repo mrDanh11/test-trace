@@ -52,6 +52,7 @@ void
 vprintf(int fd, const char *fmt, va_list ap)
 {
   char *s;
+<<<<<<< HEAD
   int c, i, state;
 
   state = 0;
@@ -64,6 +65,63 @@ vprintf(int fd, const char *fmt, va_list ap)
         putc(fd, c);
       }
     } else if(state == '%'){
+=======
+  int c0, c1, c2, i, state;
+
+  state = 0;
+  for(i = 0; fmt[i]; i++){
+    c0 = fmt[i] & 0xff;
+    if(state == 0){
+      if(c0 == '%'){
+        state = '%';
+      } else {
+        putc(fd, c0);
+      }
+    } else if(state == '%'){
+      c1 = c2 = 0;
+      if(c0) c1 = fmt[i+1] & 0xff;
+      if(c1) c2 = fmt[i+2] & 0xff;
+      if(c0 == 'd'){
+        printint(fd, va_arg(ap, int), 10, 1);
+      } else if(c0 == 'l' && c1 == 'd'){
+        printint(fd, va_arg(ap, uint64), 10, 1);
+        i += 1;
+      } else if(c0 == 'l' && c1 == 'l' && c2 == 'd'){
+        printint(fd, va_arg(ap, uint64), 10, 1);
+        i += 2;
+      } else if(c0 == 'u'){
+        printint(fd, va_arg(ap, int), 10, 0);
+      } else if(c0 == 'l' && c1 == 'u'){
+        printint(fd, va_arg(ap, uint64), 10, 0);
+        i += 1;
+      } else if(c0 == 'l' && c1 == 'l' && c2 == 'u'){
+        printint(fd, va_arg(ap, uint64), 10, 0);
+        i += 2;
+      } else if(c0 == 'x'){
+        printint(fd, va_arg(ap, int), 16, 0);
+      } else if(c0 == 'l' && c1 == 'x'){
+        printint(fd, va_arg(ap, uint64), 16, 0);
+        i += 1;
+      } else if(c0 == 'l' && c1 == 'l' && c2 == 'x'){
+        printint(fd, va_arg(ap, uint64), 16, 0);
+        i += 2;
+      } else if(c0 == 'p'){
+        printptr(fd, va_arg(ap, uint64));
+      } else if(c0 == 's'){
+        if((s = va_arg(ap, char*)) == 0)
+          s = "(null)";
+        for(; *s; s++)
+          putc(fd, *s);
+      } else if(c0 == '%'){
+        putc(fd, '%');
+      } else {
+        // Unknown % sequence.  Print it to draw attention.
+        putc(fd, '%');
+        putc(fd, c0);
+      }
+
+#if 0
+>>>>>>> test-trace-2
       if(c == 'd'){
         printint(fd, va_arg(ap, int), 10, 1);
       } else if(c == 'l') {
@@ -89,6 +147,10 @@ vprintf(int fd, const char *fmt, va_list ap)
         putc(fd, '%');
         putc(fd, c);
       }
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> test-trace-2
       state = 0;
     }
   }

@@ -1,5 +1,9 @@
 #include "kernel/types.h"
 #include "kernel/stat.h"
+<<<<<<< HEAD
+=======
+#include "kernel/fcntl.h"
+>>>>>>> test-trace-2
 #include "user/user.h"
 
 char buf[512];
@@ -43,7 +47,11 @@ main(int argc, char *argv[])
   }
 
   for(i = 1; i < argc; i++){
+<<<<<<< HEAD
     if((fd = open(argv[i], 0)) < 0){
+=======
+    if((fd = open(argv[i], O_RDONLY)) < 0){
+>>>>>>> test-trace-2
       printf("wc: cannot open %s\n", argv[i]);
       exit(1);
     }

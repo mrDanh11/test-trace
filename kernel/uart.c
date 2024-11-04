@@ -13,7 +13,11 @@
 // the UART control registers are memory-mapped
 // at address UART0. this macro returns the
 // address of one of the registers.
+<<<<<<< HEAD
 #define Reg(reg) ((volatile unsigned char *)(UART0 + reg))
+=======
+#define Reg(reg) ((volatile unsigned char *)(UART0 + (reg)))
+>>>>>>> test-trace-2
 
 // the UART control registers.
 // some have different meanings for
@@ -22,8 +26,13 @@
 #define RHR 0                 // receive holding register (for input bytes)
 #define THR 0                 // transmit holding register (for output bytes)
 #define IER 1                 // interrupt enable register
+<<<<<<< HEAD
 #define IER_TX_ENABLE (1<<0)
 #define IER_RX_ENABLE (1<<1)
+=======
+#define IER_RX_ENABLE (1<<0)
+#define IER_TX_ENABLE (1<<1)
+>>>>>>> test-trace-2
 #define FCR 2                 // FIFO control register
 #define FCR_FIFO_ENABLE (1<<0)
 #define FCR_FIFO_CLEAR (3<<1) // clear the content of the two FIFOs
@@ -42,8 +51,13 @@
 struct spinlock uart_tx_lock;
 #define UART_TX_BUF_SIZE 32
 char uart_tx_buf[UART_TX_BUF_SIZE];
+<<<<<<< HEAD
 int uart_tx_w; // write next to uart_tx_buf[uart_tx_w++]
 int uart_tx_r; // read next from uart_tx_buf[uar_tx_r++]
+=======
+uint64 uart_tx_w; // write next to uart_tx_buf[uart_tx_w % UART_TX_BUF_SIZE]
+uint64 uart_tx_r; // read next from uart_tx_buf[uart_tx_r % UART_TX_BUF_SIZE]
+>>>>>>> test-trace-2
 
 extern volatile int panicked; // from printf.c
 
@@ -92,6 +106,7 @@ uartputc(int c)
     for(;;)
       ;
   }
+<<<<<<< HEAD
 
   while(1){
     if(((uart_tx_w + 1) % UART_TX_BUF_SIZE) == uart_tx_r){
@@ -108,6 +123,20 @@ uartputc(int c)
   }
 }
 
+=======
+  while(uart_tx_w == uart_tx_r + UART_TX_BUF_SIZE){
+    // buffer is full.
+    // wait for uartstart() to open up space in the buffer.
+    sleep(&uart_tx_r, &uart_tx_lock);
+  }
+  uart_tx_buf[uart_tx_w % UART_TX_BUF_SIZE] = c;
+  uart_tx_w += 1;
+  uartstart();
+  release(&uart_tx_lock);
+}
+
+
+>>>>>>> test-trace-2
 // alternate version of uartputc() that doesn't 
 // use interrupts, for use by kernel printf() and
 // to echo characters. it spins waiting for the uart's
@@ -140,6 +169,10 @@ uartstart()
   while(1){
     if(uart_tx_w == uart_tx_r){
       // transmit buffer is empty.
+<<<<<<< HEAD
+=======
+      ReadReg(ISR);
+>>>>>>> test-trace-2
       return;
     }
     
@@ -150,8 +183,13 @@ uartstart()
       return;
     }
     
+<<<<<<< HEAD
     int c = uart_tx_buf[uart_tx_r];
     uart_tx_r = (uart_tx_r + 1) % UART_TX_BUF_SIZE;
+=======
+    int c = uart_tx_buf[uart_tx_r % UART_TX_BUF_SIZE];
+    uart_tx_r += 1;
+>>>>>>> test-trace-2
     
     // maybe uartputc() is waiting for space in the buffer.
     wakeup(&uart_tx_r);
@@ -175,7 +213,11 @@ uartgetc(void)
 
 // handle a uart interrupt, raised because input has
 // arrived, or the uart is ready for more output, or
+<<<<<<< HEAD
 // both. called from trap.c.
+=======
+// both. called from devintr().
+>>>>>>> test-trace-2
 void
 uartintr(void)
 {

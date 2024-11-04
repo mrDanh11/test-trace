@@ -27,7 +27,11 @@
 
 //
 // send one character to the uart.
+<<<<<<< HEAD
 // called by printf, and to echo input characters,
+=======
+// called by printf(), and to echo input characters,
+>>>>>>> test-trace-2
 // but not from write().
 //
 void
@@ -45,8 +49,13 @@ struct {
   struct spinlock lock;
   
   // input
+<<<<<<< HEAD
 #define INPUT_BUF 128
   char buf[INPUT_BUF];
+=======
+#define INPUT_BUF_SIZE 128
+  char buf[INPUT_BUF_SIZE];
+>>>>>>> test-trace-2
   uint r;  // Read index
   uint w;  // Write index
   uint e;  // Edit index
@@ -60,14 +69,20 @@ consolewrite(int user_src, uint64 src, int n)
 {
   int i;
 
+<<<<<<< HEAD
   acquire(&cons.lock);
+=======
+>>>>>>> test-trace-2
   for(i = 0; i < n; i++){
     char c;
     if(either_copyin(&c, user_src, src+i, 1) == -1)
       break;
     uartputc(c);
   }
+<<<<<<< HEAD
   release(&cons.lock);
+=======
+>>>>>>> test-trace-2
 
   return i;
 }
@@ -91,14 +106,22 @@ consoleread(int user_dst, uint64 dst, int n)
     // wait until interrupt handler has put some
     // input into cons.buffer.
     while(cons.r == cons.w){
+<<<<<<< HEAD
       if(myproc()->killed){
+=======
+      if(killed(myproc())){
+>>>>>>> test-trace-2
         release(&cons.lock);
         return -1;
       }
       sleep(&cons.r, &cons.lock);
     }
 
+<<<<<<< HEAD
     c = cons.buf[cons.r++ % INPUT_BUF];
+=======
+    c = cons.buf[cons.r++ % INPUT_BUF_SIZE];
+>>>>>>> test-trace-2
 
     if(c == C('D')){  // end-of-file
       if(n < target){
@@ -145,29 +168,47 @@ consoleintr(int c)
     break;
   case C('U'):  // Kill line.
     while(cons.e != cons.w &&
+<<<<<<< HEAD
           cons.buf[(cons.e-1) % INPUT_BUF] != '\n'){
+=======
+          cons.buf[(cons.e-1) % INPUT_BUF_SIZE] != '\n'){
+>>>>>>> test-trace-2
       cons.e--;
       consputc(BACKSPACE);
     }
     break;
   case C('H'): // Backspace
+<<<<<<< HEAD
   case '\x7f':
+=======
+  case '\x7f': // Delete key
+>>>>>>> test-trace-2
     if(cons.e != cons.w){
       cons.e--;
       consputc(BACKSPACE);
     }
     break;
   default:
+<<<<<<< HEAD
     if(c != 0 && cons.e-cons.r < INPUT_BUF){
+=======
+    if(c != 0 && cons.e-cons.r < INPUT_BUF_SIZE){
+>>>>>>> test-trace-2
       c = (c == '\r') ? '\n' : c;
 
       // echo back to the user.
       consputc(c);
 
       // store for consumption by consoleread().
+<<<<<<< HEAD
       cons.buf[cons.e++ % INPUT_BUF] = c;
 
       if(c == '\n' || c == C('D') || cons.e == cons.r+INPUT_BUF){
+=======
+      cons.buf[cons.e++ % INPUT_BUF_SIZE] = c;
+
+      if(c == '\n' || c == C('D') || cons.e-cons.r == INPUT_BUF_SIZE){
+>>>>>>> test-trace-2
         // wake up consoleread() if a whole line (or end-of-file)
         // has arrived.
         cons.w = cons.e;

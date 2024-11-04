@@ -10,12 +10,15 @@ void timerinit();
 // entry.S needs one stack per CPU.
 __attribute__ ((aligned (16))) char stack0[4096 * NCPU];
 
+<<<<<<< HEAD
 // scratch area for timer interrupt, one per CPU.
 uint64 mscratch0[NCPU * 32];
 
 // assembly code in kernelvec.S for machine-mode timer interrupt.
 extern void timervec();
 
+=======
+>>>>>>> test-trace-2
 // entry.S jumps here in machine mode on stack0.
 void
 start()
@@ -38,6 +41,14 @@ start()
   w_mideleg(0xffff);
   w_sie(r_sie() | SIE_SEIE | SIE_STIE | SIE_SSIE);
 
+<<<<<<< HEAD
+=======
+  // configure Physical Memory Protection to give supervisor mode
+  // access to all of physical memory.
+  w_pmpaddr0(0x3fffffffffffffull);
+  w_pmpcfg0(0xf);
+
+>>>>>>> test-trace-2
   // ask for clock interrupts.
   timerinit();
 
@@ -49,6 +60,7 @@ start()
   asm volatile("mret");
 }
 
+<<<<<<< HEAD
 // set up to receive timer interrupts in machine mode,
 // which arrive at timervec in kernelvec.S,
 // which turns them into software interrupts for
@@ -80,4 +92,21 @@ timerinit()
 
   // enable machine-mode timer interrupts.
   w_mie(r_mie() | MIE_MTIE);
+=======
+// ask each hart to generate timer interrupts.
+void
+timerinit()
+{
+  // enable supervisor-mode timer interrupts.
+  w_mie(r_mie() | MIE_STIE);
+  
+  // enable the sstc extension (i.e. stimecmp).
+  w_menvcfg(r_menvcfg() | (1L << 63)); 
+  
+  // allow supervisor to use stimecmp and time.
+  w_mcounteren(r_mcounteren() | 2);
+  
+  // ask for the very first timer interrupt.
+  w_stimecmp(r_time() + 1000000);
+>>>>>>> test-trace-2
 }

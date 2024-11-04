@@ -25,7 +25,11 @@ main()
     plicinit();      // set up interrupt controller
     plicinithart();  // ask PLIC for device interrupts
     binit();         // buffer cache
+<<<<<<< HEAD
     iinit();         // inode cache
+=======
+    iinit();         // inode table
+>>>>>>> test-trace-2
     fileinit();      // file table
     virtio_disk_init(); // emulated hard disk
     userinit();      // first user process

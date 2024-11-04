@@ -31,7 +31,10 @@ extern struct cpu cpus[NCPU];
 // per-process data for the trap handling code in trampoline.S.
 // sits in a page by itself just under the trampoline page in the
 // user page table. not specially mapped in the kernel page table.
+<<<<<<< HEAD
 // the sscratch register points here.
+=======
+>>>>>>> test-trace-2
 // uservec in trampoline.S saves user registers in the trapframe,
 // then initializes registers from the trapframe's
 // kernel_sp, kernel_hartid, kernel_satp, and jumps to kernel_trap.
@@ -80,7 +83,11 @@ struct trapframe {
   /* 280 */ uint64 t6;
 };
 
+<<<<<<< HEAD
 enum procstate { UNUSED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+=======
+enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+>>>>>>> test-trace-2
 
 // Per-process state
 struct proc {
@@ -88,12 +95,21 @@ struct proc {
 
   // p->lock must be held when using these:
   enum procstate state;        // Process state
+<<<<<<< HEAD
   struct proc *parent;         // Parent process
+=======
+>>>>>>> test-trace-2
   void *chan;                  // If non-zero, sleeping on chan
   int killed;                  // If non-zero, have been killed
   int xstate;                  // Exit status to be returned to parent's wait
   int pid;                     // Process ID
 
+<<<<<<< HEAD
+=======
+  // wait_lock must be held when using this:
+  struct proc *parent;         // Parent process
+
+>>>>>>> test-trace-2
   // these are private to the process, so p->lock need not be held.
   uint64 kstack;               // Virtual address of kernel stack
   uint64 sz;                   // Size of process memory (bytes)
@@ -103,5 +119,10 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+<<<<<<< HEAD
   int trace_mask;              // trace syscall mask
+=======
+  // bien luu gia tri mask de theo doi
+  int trace_mask;
+>>>>>>> test-trace-2
 };

@@ -17,19 +17,38 @@
 // prints "OK".
 //
 
+<<<<<<< HEAD
 #define BUFSZ  (MAXOPBLOCKS+2)*BSIZE
 
 char buf[BUFSZ];
 char name[3];
+=======
+#define BUFSZ  ((MAXOPBLOCKS+2)*BSIZE)
+
+char buf[BUFSZ];
+
+//
+// Section with tests that run fairly quickly.  Use -q if you want to
+// run just those.  With -q usertests also runs the ones that take a
+// fair of time.
+//
+>>>>>>> test-trace-2
 
 // what if you pass ridiculous pointers to system calls
 // that read user memory with copyin?
 void
 copyin(char *s)
 {
+<<<<<<< HEAD
   uint64 addrs[] = { 0x80000000LL, 0xffffffffffffffff };
 
   for(int ai = 0; ai < 2; ai++){
+=======
+  uint64 addrs[] = { 0x80000000LL, 0x3fffffe000, 0x3ffffff000, 0x4000000000,
+                     0xffffffffffffffff };
+
+  for(int ai = 0; ai < sizeof(addrs)/sizeof(addrs[0]); ai++){
+>>>>>>> test-trace-2
     uint64 addr = addrs[ai];
     
     int fd = open("copyin1", O_CREATE|O_WRONLY);
@@ -39,7 +58,11 @@ copyin(char *s)
     }
     int n = write(fd, (void*)addr, 8192);
     if(n >= 0){
+<<<<<<< HEAD
       printf("write(fd, %p, 8192) returned %d, not -1\n", addr, n);
+=======
+      printf("write(fd, %p, 8192) returned %d, not -1\n", (void*)addr, n);
+>>>>>>> test-trace-2
       exit(1);
     }
     close(fd);
@@ -47,7 +70,11 @@ copyin(char *s)
     
     n = write(1, (char*)addr, 8192);
     if(n > 0){
+<<<<<<< HEAD
       printf("write(1, %p, 8192) returned %d, not -1 or 0\n", addr, n);
+=======
+      printf("write(1, %p, 8192) returned %d, not -1 or 0\n", (void*)addr, n);
+>>>>>>> test-trace-2
       exit(1);
     }
     
@@ -58,7 +85,11 @@ copyin(char *s)
     }
     n = write(fds[1], (char*)addr, 8192);
     if(n > 0){
+<<<<<<< HEAD
       printf("write(pipe, %p, 8192) returned %d, not -1 or 0\n", addr, n);
+=======
+      printf("write(pipe, %p, 8192) returned %d, not -1 or 0\n", (void*)addr, n);
+>>>>>>> test-trace-2
       exit(1);
     }
     close(fds[0]);
@@ -71,9 +102,16 @@ copyin(char *s)
 void
 copyout(char *s)
 {
+<<<<<<< HEAD
   uint64 addrs[] = { 0x80000000LL, 0xffffffffffffffff };
 
   for(int ai = 0; ai < 2; ai++){
+=======
+  uint64 addrs[] = { 0LL, 0x80000000LL, 0x3fffffe000, 0x3ffffff000, 0x4000000000,
+                     0xffffffffffffffff };
+
+  for(int ai = 0; ai < sizeof(addrs)/sizeof(addrs[0]); ai++){
+>>>>>>> test-trace-2
     uint64 addr = addrs[ai];
 
     int fd = open("README", 0);
@@ -83,7 +121,11 @@ copyout(char *s)
     }
     int n = read(fd, (void*)addr, 8192);
     if(n > 0){
+<<<<<<< HEAD
       printf("read(fd, %p, 8192) returned %d, not -1 or 0\n", addr, n);
+=======
+      printf("read(fd, %p, 8192) returned %d, not -1 or 0\n", (void*)addr, n);
+>>>>>>> test-trace-2
       exit(1);
     }
     close(fd);
@@ -100,7 +142,11 @@ copyout(char *s)
     }
     n = read(fds[0], (void*)addr, 8192);
     if(n > 0){
+<<<<<<< HEAD
       printf("read(pipe, %p, 8192) returned %d, not -1 or 0\n", addr, n);
+=======
+      printf("read(pipe, %p, 8192) returned %d, not -1 or 0\n", (void*)addr, n);
+>>>>>>> test-trace-2
       exit(1);
     }
     close(fds[0]);
@@ -112,14 +158,25 @@ copyout(char *s)
 void
 copyinstr1(char *s)
 {
+<<<<<<< HEAD
   uint64 addrs[] = { 0x80000000LL, 0xffffffffffffffff };
 
   for(int ai = 0; ai < 2; ai++){
+=======
+  uint64 addrs[] = { 0x80000000LL, 0x3fffffe000, 0x3ffffff000, 0x4000000000,
+                     0xffffffffffffffff };
+
+  for(int ai = 0; ai < sizeof(addrs)/sizeof(addrs[0]); ai++){
+>>>>>>> test-trace-2
     uint64 addr = addrs[ai];
 
     int fd = open((char *)addr, O_CREATE|O_WRONLY);
     if(fd >= 0){
+<<<<<<< HEAD
       printf("open(%p) returned %d, not -1\n", addr, fd);
+=======
+      printf("open(%p) returned %d, not -1\n", (void*)addr, fd);
+>>>>>>> test-trace-2
       exit(1);
     }
   }
@@ -233,6 +290,56 @@ copyinstr3(char *s)
   }
 }
 
+<<<<<<< HEAD
+=======
+// See if the kernel refuses to read/write user memory that the
+// application doesn't have anymore, because it returned it.
+void
+rwsbrk()
+{
+  int fd, n;
+  
+  uint64 a = (uint64) sbrk(8192);
+
+  if(a == 0xffffffffffffffffLL) {
+    printf("sbrk(rwsbrk) failed\n");
+    exit(1);
+  }
+  
+  if ((uint64) sbrk(-8192) ==  0xffffffffffffffffLL) {
+    printf("sbrk(rwsbrk) shrink failed\n");
+    exit(1);
+  }
+
+  fd = open("rwsbrk", O_CREATE|O_WRONLY);
+  if(fd < 0){
+    printf("open(rwsbrk) failed\n");
+    exit(1);
+  }
+  n = write(fd, (void*)(a+4096), 1024);
+  if(n >= 0){
+    printf("write(fd, %p, 1024) returned %d, not -1\n", (void*)a+4096, n);
+    exit(1);
+  }
+  close(fd);
+  unlink("rwsbrk");
+
+  fd = open("README", O_RDONLY);
+  if(fd < 0){
+    printf("open(rwsbrk) failed\n");
+    exit(1);
+  }
+  n = read(fd, (void*)(a+4096), 10);
+  if(n >= 0){
+    printf("read(fd, %p, 10) returned %d, not -1\n", (void*)a+4096, n);
+    exit(1);
+  }
+  close(fd);
+  
+  exit(0);
+}
+
+>>>>>>> test-trace-2
 // test O_TRUNC.
 void
 truncate1(char *s)
@@ -496,11 +603,19 @@ writetest(char *s)
   }
   for(i = 0; i < N; i++){
     if(write(fd, "aaaaaaaaaa", SZ) != SZ){
+<<<<<<< HEAD
       printf("%s: error: write aa %d new file failed\n", i);
       exit(1);
     }
     if(write(fd, "bbbbbbbbbb", SZ) != SZ){
       printf("%s: error: write bb %d new file failed\n", i);
+=======
+      printf("%s: error: write aa %d new file failed\n", s, i);
+      exit(1);
+    }
+    if(write(fd, "bbbbbbbbbb", SZ) != SZ){
+      printf("%s: error: write bb %d new file failed\n", s, i);
+>>>>>>> test-trace-2
       exit(1);
     }
   }
@@ -537,7 +652,11 @@ writebig(char *s)
   for(i = 0; i < MAXFILE; i++){
     ((int*)buf)[0] = i;
     if(write(fd, buf, BSIZE) != BSIZE){
+<<<<<<< HEAD
       printf("%s: error: write big file failed\n", i);
+=======
+      printf("%s: error: write big file failed i=%d\n", s, i);
+>>>>>>> test-trace-2
       exit(1);
     }
   }
@@ -554,17 +673,30 @@ writebig(char *s)
   for(;;){
     i = read(fd, buf, BSIZE);
     if(i == 0){
+<<<<<<< HEAD
       if(n == MAXFILE - 1){
         printf("%s: read only %d blocks from big", n);
+=======
+      if(n != MAXFILE){
+        printf("%s: read only %d blocks from big", s, n);
+>>>>>>> test-trace-2
         exit(1);
       }
       break;
     } else if(i != BSIZE){
+<<<<<<< HEAD
       printf("%s: read failed %d\n", i);
       exit(1);
     }
     if(((int*)buf)[0] != n){
       printf("%s: read content of block %d is %d\n",
+=======
+      printf("%s: read failed %d\n", s, i);
+      exit(1);
+    }
+    if(((int*)buf)[0] != n){
+      printf("%s: read content of block %d is %d\n", s,
+>>>>>>> test-trace-2
              n, ((int*)buf)[0]);
       exit(1);
     }
@@ -584,6 +716,10 @@ createtest(char *s)
   int i, fd;
   enum { N=52 };
 
+<<<<<<< HEAD
+=======
+  char name[3];
+>>>>>>> test-trace-2
   name[0] = 'a';
   name[2] = '\0';
   for(i = 0; i < N; i++){
@@ -601,8 +737,11 @@ createtest(char *s)
 
 void dirtest(char *s)
 {
+<<<<<<< HEAD
   printf("mkdir test\n");
 
+=======
+>>>>>>> test-trace-2
   if(mkdir("dir0") < 0){
     printf("%s: mkdir failed\n", s);
     exit(1);
@@ -622,7 +761,10 @@ void dirtest(char *s)
     printf("%s: unlink dir0 failed\n", s);
     exit(1);
   }
+<<<<<<< HEAD
   printf("%s: mkdir test ok\n");
+=======
+>>>>>>> test-trace-2
 }
 
 void
@@ -723,7 +865,11 @@ pipe1(char *s)
         cc = sizeof(buf);
     }
     if(total != N * SZ){
+<<<<<<< HEAD
       printf("%s: pipe1 oops 3 total %d\n", total);
+=======
+      printf("%s: pipe1 oops 3 total %d\n", s, total);
+>>>>>>> test-trace-2
       exit(1);
     }
     close(fds[0]);
@@ -735,6 +881,39 @@ pipe1(char *s)
   }
 }
 
+<<<<<<< HEAD
+=======
+
+// test if child is killed (status = -1)
+void
+killstatus(char *s)
+{
+  int xst;
+  
+  for(int i = 0; i < 100; i++){
+    int pid1 = fork();
+    if(pid1 < 0){
+      printf("%s: fork failed\n", s);
+      exit(1);
+    }
+    if(pid1 == 0){
+      while(1) {
+        getpid();
+      }
+      exit(0);
+    }
+    sleep(1);
+    kill(pid1);
+    wait(&xst);
+    if(xst != -1) {
+       printf("%s: status should be -1\n", s);
+       exit(1);
+    }
+  }
+  exit(0);
+}
+
+>>>>>>> test-trace-2
 // meant to be run w/ at most two CPUs
 void
 preempt(char *s)
@@ -744,7 +923,11 @@ preempt(char *s)
 
   pid1 = fork();
   if(pid1 < 0) {
+<<<<<<< HEAD
     printf("%s: fork failed");
+=======
+    printf("%s: fork failed", s);
+>>>>>>> test-trace-2
     exit(1);
   }
   if(pid1 == 0)
@@ -769,7 +952,11 @@ preempt(char *s)
   if(pid3 == 0){
     close(pfds[0]);
     if(write(pfds[1], "x", 1) != 1)
+<<<<<<< HEAD
       printf("%s: preempt write error");
+=======
+      printf("%s: preempt write error", s);
+>>>>>>> test-trace-2
     close(pfds[1]);
     for(;;)
       ;
@@ -777,7 +964,11 @@ preempt(char *s)
 
   close(pfds[1]);
   if(read(pfds[0], buf, sizeof(buf)) != 1){
+<<<<<<< HEAD
     printf("%s: preempt read error");
+=======
+    printf("%s: preempt read error", s);
+>>>>>>> test-trace-2
     return;
   }
   close(pfds[0]);
@@ -989,7 +1180,11 @@ mem(char *s)
     }
     m1 = malloc(1024*20);
     if(m1 == 0){
+<<<<<<< HEAD
       printf("couldn't allocate mem?!!\n", s);
+=======
+      printf("%s: couldn't allocate mem?!!\n", s);
+>>>>>>> test-trace-2
       exit(1);
     }
     free(m1);
@@ -1081,14 +1276,22 @@ fourfiles(char *s)
 
     pid = fork();
     if(pid < 0){
+<<<<<<< HEAD
       printf("fork failed\n", s);
+=======
+      printf("%s: fork failed\n", s);
+>>>>>>> test-trace-2
       exit(1);
     }
 
     if(pid == 0){
       fd = open(fname, O_CREATE | O_RDWR);
       if(fd < 0){
+<<<<<<< HEAD
         printf("create failed\n", s);
+=======
+        printf("%s: create failed\n", s);
+>>>>>>> test-trace-2
         exit(1);
       }
 
@@ -1117,7 +1320,11 @@ fourfiles(char *s)
     while((n = read(fd, buf, sizeof(buf))) > 0){
       for(j = 0; j < n; j++){
         if(buf[j] != '0'+i){
+<<<<<<< HEAD
           printf("wrong char\n", s);
+=======
+          printf("%s: wrong char\n", s);
+>>>>>>> test-trace-2
           exit(1);
         }
       }
@@ -1143,7 +1350,11 @@ createdelete(char *s)
   for(pi = 0; pi < NCHILD; pi++){
     pid = fork();
     if(pid < 0){
+<<<<<<< HEAD
       printf("fork failed\n", s);
+=======
+      printf("%s: fork failed\n", s);
+>>>>>>> test-trace-2
       exit(1);
     }
 
@@ -1197,7 +1408,11 @@ createdelete(char *s)
 
   for(i = 0; i < N; i++){
     for(pi = 0; pi < NCHILD; pi++){
+<<<<<<< HEAD
       name[0] = 'p' + i;
+=======
+      name[0] = 'p' + pi;
+>>>>>>> test-trace-2
       name[1] = '0' + i;
       unlink(name);
     }
@@ -1298,7 +1513,11 @@ linktest(char *s)
 
   unlink("lf2");
   if(link("lf2", "lf1") >= 0){
+<<<<<<< HEAD
     printf("%s: link non-existant succeeded! oops\n", s);
+=======
+    printf("%s: link non-existent succeeded! oops\n", s);
+>>>>>>> test-trace-2
     exit(1);
   }
 
@@ -1438,6 +1657,7 @@ linkunlink(char *s)
     exit(0);
 }
 
+<<<<<<< HEAD
 // directory that uses indirect blocks
 void
 bigdir(char *s)
@@ -1478,6 +1698,8 @@ bigdir(char *s)
     }
   }
 }
+=======
+>>>>>>> test-trace-2
 
 void
 subdir(char *s)
@@ -1504,7 +1726,11 @@ subdir(char *s)
   }
 
   if(mkdir("/dd/dd") != 0){
+<<<<<<< HEAD
     printf("subdir mkdir dd/dd failed\n", s);
+=======
+    printf("%s: subdir mkdir dd/dd failed\n", s);
+>>>>>>> test-trace-2
     exit(1);
   }
 
@@ -1529,7 +1755,11 @@ subdir(char *s)
   close(fd);
 
   if(link("dd/dd/ff", "dd/dd/ffff") != 0){
+<<<<<<< HEAD
     printf("link dd/dd/ff dd/dd/ffff failed\n", s);
+=======
+    printf("%s: link dd/dd/ff dd/dd/ffff failed\n", s);
+>>>>>>> test-trace-2
     exit(1);
   }
 
@@ -1551,7 +1781,11 @@ subdir(char *s)
     exit(1);
   }
   if(chdir("dd/../../../dd") != 0){
+<<<<<<< HEAD
     printf("chdir dd/../../dd failed\n", s);
+=======
+    printf("%s: chdir dd/../../../dd failed\n", s);
+>>>>>>> test-trace-2
     exit(1);
   }
   if(chdir("./..") != 0){
@@ -1684,6 +1918,10 @@ bigwrite(char *s)
   }
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> test-trace-2
 void
 bigfile(char *s)
 {
@@ -1993,7 +2231,11 @@ sbrkbasic(char *s)
   for(i = 0; i < 5000; i++){
     b = sbrk(1);
     if(b != a){
+<<<<<<< HEAD
       printf("%s: sbrk test failed %d %x %x\n", i, a, b);
+=======
+      printf("%s: sbrk test failed %d %p %p\n", s, i, a, b);
+>>>>>>> test-trace-2
       exit(1);
     }
     *b = 1;
@@ -2051,7 +2293,11 @@ sbrkmuch(char *s)
   }
   c = sbrk(0);
   if(c != a - PGSIZE){
+<<<<<<< HEAD
     printf("%s: sbrk deallocation produced wrong address, a %x c %x\n", a, c);
+=======
+    printf("%s: sbrk deallocation produced wrong address, a %p c %p\n", s, a, c);
+>>>>>>> test-trace-2
     exit(1);
   }
 
@@ -2059,7 +2305,11 @@ sbrkmuch(char *s)
   a = sbrk(0);
   c = sbrk(PGSIZE);
   if(c != a || sbrk(0) != a + PGSIZE){
+<<<<<<< HEAD
     printf("%s: sbrk re-allocation failed, a %x c %x\n", a, c);
+=======
+    printf("%s: sbrk re-allocation failed, a %p c %p\n", s, a, c);
+>>>>>>> test-trace-2
     exit(1);
   }
   if(*lastaddr == 99){
@@ -2071,7 +2321,11 @@ sbrkmuch(char *s)
   a = sbrk(0);
   c = sbrk(-(sbrk(0) - oldbrk));
   if(c != a){
+<<<<<<< HEAD
     printf("%s: sbrk downsize failed, a %x c %x\n", a, c);
+=======
+    printf("%s: sbrk downsize failed, a %p c %p\n", s, a, c);
+>>>>>>> test-trace-2
     exit(1);
   }
 }
@@ -2090,7 +2344,35 @@ kernmem(char *s)
       exit(1);
     }
     if(pid == 0){
+<<<<<<< HEAD
       printf("%s: oops could read %x = %x\n", a, *a);
+=======
+      printf("%s: oops could read %p = %x\n", s, a, *a);
+      exit(1);
+    }
+    int xstatus;
+    wait(&xstatus);
+    if(xstatus != -1)  // did kernel kill child?
+      exit(1);
+  }
+}
+
+// user code should not be able to write to addresses above MAXVA.
+void
+MAXVAplus(char *s)
+{
+  volatile uint64 a = MAXVA;
+  for( ; a != 0; a <<= 1){
+    int pid;
+    pid = fork();
+    if(pid < 0){
+      printf("%s: fork failed\n", s);
+      exit(1);
+    }
+    if(pid == 0){
+      *(char*)a = 99;
+      printf("%s: oops wrote %p\n", s, (void*)a);
+>>>>>>> test-trace-2
       exit(1);
     }
     int xstatus;
@@ -2161,7 +2443,11 @@ sbrkfail(char *s)
     }
     // print n so the compiler doesn't optimize away
     // the for loop.
+<<<<<<< HEAD
     printf("%s: allocate a lot of memory succeeded %d\n", n);
+=======
+    printf("%s: allocate a lot of memory succeeded %d\n", s, n);
+>>>>>>> test-trace-2
     exit(1);
   }
   wait(&xstatus);
@@ -2214,7 +2500,11 @@ validatetest(char *s)
   }
 }
 
+<<<<<<< HEAD
 // does unintialized data start out zero?
+=======
+// does uninitialized data start out zero?
+>>>>>>> test-trace-2
 char uninit[10000];
 void
 bsstest(char *s)
@@ -2242,9 +2532,20 @@ bigargtest(char *s)
   if(pid == 0){
     static char *args[MAXARG];
     int i;
+<<<<<<< HEAD
     for(i = 0; i < MAXARG-1; i++)
       args[i] = "bigargs test: failed\n                                                                                                                                                                                                       ";
     args[MAXARG-1] = 0;
+=======
+    char big[400];
+    memset(big, ' ', sizeof(big));
+    big[sizeof(big)-1] = '\0';
+    for(i = 0; i < MAXARG-1; i++)
+      args[i] = big;
+    args[MAXARG-1] = 0;
+    // this exec() should fail (and return) because the
+    // arguments are too large.
+>>>>>>> test-trace-2
     exec("echo", args);
     fd = open("bigarg-ok", O_CREATE);
     close(fd);
@@ -2283,10 +2584,17 @@ fsfull()
     name[3] = '0' + (nfiles % 100) / 10;
     name[4] = '0' + (nfiles % 10);
     name[5] = '\0';
+<<<<<<< HEAD
     printf("%s: writing %s\n", name);
     int fd = open(name, O_CREATE|O_RDWR);
     if(fd < 0){
       printf("%s: open %s failed\n", name);
+=======
+    printf("writing %s\n", name);
+    int fd = open(name, O_CREATE|O_RDWR);
+    if(fd < 0){
+      printf("open %s failed\n", name);
+>>>>>>> test-trace-2
       break;
     }
     int total = 0;
@@ -2297,7 +2605,11 @@ fsfull()
       total += cc;
       fsblocks++;
     }
+<<<<<<< HEAD
     printf("%s: wrote %d bytes\n", total);
+=======
+    printf("wrote %d bytes\n", total);
+>>>>>>> test-trace-2
     close(fd);
     if(total == 0)
       break;
@@ -2330,6 +2642,7 @@ void argptest(char *s)
   close(fd);
 }
 
+<<<<<<< HEAD
 unsigned long randstate = 1;
 unsigned int
 rand()
@@ -2338,6 +2651,8 @@ rand()
   return randstate;
 }
 
+=======
+>>>>>>> test-trace-2
 // check that there's an invalid page beneath
 // the user stack, to catch stack overflow.
 void
@@ -2349,9 +2664,15 @@ stacktest(char *s)
   pid = fork();
   if(pid == 0) {
     char *sp = (char *) r_sp();
+<<<<<<< HEAD
     sp -= PGSIZE;
     // the *sp should cause a trap.
     printf("%s: stacktest: read below stack %p\n", *sp);
+=======
+    sp -= USERSTACK*PGSIZE;
+    // the *sp should cause a trap.
+    printf("%s: stacktest: read below stack %d\n", s, *sp);
+>>>>>>> test-trace-2
     exit(1);
   } else if(pid < 0){
     printf("%s: fork failed\n", s);
@@ -2364,17 +2685,59 @@ stacktest(char *s)
     exit(xstatus);
 }
 
+<<<<<<< HEAD
 // regression test. copyin(), copyout(), and copyinstr() used to cast
 // the virtual page address to uint, which (with certain wild system
 // call arguments) resulted in a kernel page faults.
+=======
+// check that writes to a few forbidden addresses
+// cause a fault, e.g. process's text and TRAMPOLINE.
+void
+nowrite(char *s)
+{
+  int pid;
+  int xstatus;
+  uint64 addrs[] = { 0, 0x80000000LL, 0x3fffffe000, 0x3ffffff000, 0x4000000000,
+                     0xffffffffffffffff };
+  
+  for(int ai = 0; ai < sizeof(addrs)/sizeof(addrs[0]); ai++){
+    pid = fork();
+    if(pid == 0) {
+      volatile int *addr = (int *) addrs[ai];
+      *addr = 10;
+      printf("%s: write to %p did not fail!\n", s, addr);
+      exit(0);
+    } else if(pid < 0){
+      printf("%s: fork failed\n", s);
+      exit(1);
+    }
+    wait(&xstatus);
+    if(xstatus == 0){
+      // kernel did not kill child!
+      exit(1);
+    }
+  }
+  exit(0);
+}
+
+// regression test. copyin(), copyout(), and copyinstr() used to cast
+// the virtual page address to uint, which (with certain wild system
+// call arguments) resulted in a kernel page faults.
+void *big = (void*) 0xeaeb0b5b00002f5e;
+>>>>>>> test-trace-2
 void
 pgbug(char *s)
 {
   char *argv[1];
   argv[0] = 0;
+<<<<<<< HEAD
   exec((char*)0xeaeb0b5b00002f5e, argv);
 
   pipe((int*)0xeaeb0b5b00002f5e);
+=======
+  exec(big, argv);
+  pipe(big);
+>>>>>>> test-trace-2
 
   exit(0);
 }
@@ -2437,6 +2800,230 @@ sbrkbugs(char *s)
   exit(0);
 }
 
+<<<<<<< HEAD
+=======
+// if process size was somewhat more than a page boundary, and then
+// shrunk to be somewhat less than that page boundary, can the kernel
+// still copyin() from addresses in the last page?
+void
+sbrklast(char *s)
+{
+  uint64 top = (uint64) sbrk(0);
+  if((top % 4096) != 0)
+    sbrk(4096 - (top % 4096));
+  sbrk(4096);
+  sbrk(10);
+  sbrk(-20);
+  top = (uint64) sbrk(0);
+  char *p = (char *) (top - 64);
+  p[0] = 'x';
+  p[1] = '\0';
+  int fd = open(p, O_RDWR|O_CREATE);
+  write(fd, p, 1);
+  close(fd);
+  fd = open(p, O_RDWR);
+  p[0] = '\0';
+  read(fd, p, 1);
+  if(p[0] != 'x')
+    exit(1);
+}
+
+
+// does sbrk handle signed int32 wrap-around with
+// negative arguments?
+void
+sbrk8000(char *s)
+{
+  sbrk(0x80000004);
+  volatile char *top = sbrk(0);
+  *(top-1) = *(top-1) + 1;
+}
+
+
+
+// regression test. test whether exec() leaks memory if one of the
+// arguments is invalid. the test passes if the kernel doesn't panic.
+void
+badarg(char *s)
+{
+  for(int i = 0; i < 50000; i++){
+    char *argv[2];
+    argv[0] = (char*)0xffffffff;
+    argv[1] = 0;
+    exec("echo", argv);
+  }
+  
+  exit(0);
+}
+
+struct test {
+  void (*f)(char *);
+  char *s;
+} quicktests[] = {
+  {copyin, "copyin"},
+  {copyout, "copyout"},
+  {copyinstr1, "copyinstr1"},
+  {copyinstr2, "copyinstr2"},
+  {copyinstr3, "copyinstr3"},
+  {rwsbrk, "rwsbrk" },
+  {truncate1, "truncate1"},
+  {truncate2, "truncate2"},
+  {truncate3, "truncate3"},
+  {openiputtest, "openiput"},
+  {exitiputtest, "exitiput"},
+  {iputtest, "iput"},
+  {opentest, "opentest"},
+  {writetest, "writetest"},
+  {writebig, "writebig"},
+  {createtest, "createtest"},
+  {dirtest, "dirtest"},
+  {exectest, "exectest"},
+  {pipe1, "pipe1"},
+  {killstatus, "killstatus"},
+  {preempt, "preempt"},
+  {exitwait, "exitwait"},
+  {reparent, "reparent" },
+  {twochildren, "twochildren"},
+  {forkfork, "forkfork"},
+  {forkforkfork, "forkforkfork"},
+  {reparent2, "reparent2"},
+  {mem, "mem"},
+  {sharedfd, "sharedfd"},
+  {fourfiles, "fourfiles"},
+  {createdelete, "createdelete"},
+  {unlinkread, "unlinkread"},
+  {linktest, "linktest"},
+  {concreate, "concreate"},
+  {linkunlink, "linkunlink"},
+  {subdir, "subdir"},
+  {bigwrite, "bigwrite"},
+  {bigfile, "bigfile"},
+  {fourteen, "fourteen"},
+  {rmdot, "rmdot"},
+  {dirfile, "dirfile"},
+  {iref, "iref"},
+  {forktest, "forktest"},
+  {sbrkbasic, "sbrkbasic"},
+  {sbrkmuch, "sbrkmuch"},
+  {kernmem, "kernmem"},
+  {MAXVAplus, "MAXVAplus"},
+  {sbrkfail, "sbrkfail"},
+  {sbrkarg, "sbrkarg"},
+  {validatetest, "validatetest"},
+  {bsstest, "bsstest"},
+  {bigargtest, "bigargtest"},
+  {argptest, "argptest"},
+  {stacktest, "stacktest"},
+  {nowrite, "nowrite"},
+  {pgbug, "pgbug" },
+  {sbrkbugs, "sbrkbugs" },
+  {sbrklast, "sbrklast"},
+  {sbrk8000, "sbrk8000"},
+  {badarg, "badarg" },
+
+  { 0, 0},
+};
+
+//
+// Section with tests that take a fair bit of time
+//
+
+// directory that uses indirect blocks
+void
+bigdir(char *s)
+{
+  enum { N = 500 };
+  int i, fd;
+  char name[10];
+
+  unlink("bd");
+
+  fd = open("bd", O_CREATE);
+  if(fd < 0){
+    printf("%s: bigdir create failed\n", s);
+    exit(1);
+  }
+  close(fd);
+
+  for(i = 0; i < N; i++){
+    name[0] = 'x';
+    name[1] = '0' + (i / 64);
+    name[2] = '0' + (i % 64);
+    name[3] = '\0';
+    if(link("bd", name) != 0){
+      printf("%s: bigdir i=%d link(bd, %s) failed\n", s, i, name);
+      exit(1);
+    }
+  }
+
+  unlink("bd");
+  for(i = 0; i < N; i++){
+    name[0] = 'x';
+    name[1] = '0' + (i / 64);
+    name[2] = '0' + (i % 64);
+    name[3] = '\0';
+    if(unlink(name) != 0){
+      printf("%s: bigdir unlink failed", s);
+      exit(1);
+    }
+  }
+}
+
+// concurrent writes to try to provoke deadlock in the virtio disk
+// driver.
+void
+manywrites(char *s)
+{
+  int nchildren = 4;
+  int howmany = 30; // increase to look for deadlock
+  
+  for(int ci = 0; ci < nchildren; ci++){
+    int pid = fork();
+    if(pid < 0){
+      printf("fork failed\n");
+      exit(1);
+    }
+
+    if(pid == 0){
+      char name[3];
+      name[0] = 'b';
+      name[1] = 'a' + ci;
+      name[2] = '\0';
+      unlink(name);
+      
+      for(int iters = 0; iters < howmany; iters++){
+        for(int i = 0; i < ci+1; i++){
+          int fd = open(name, O_CREATE | O_RDWR);
+          if(fd < 0){
+            printf("%s: cannot create %s\n", s, name);
+            exit(1);
+          }
+          int sz = sizeof(buf);
+          int cc = write(fd, buf, sz);
+          if(cc != sz){
+            printf("%s: write(%d) ret %d\n", s, sz, cc);
+            exit(1);
+          }
+          close(fd);
+        }
+        unlink(name);
+      }
+
+      unlink(name);
+      exit(0);
+    }
+  }
+
+  for(int ci = 0; ci < nchildren; ci++){
+    int st = 0;
+    wait(&st);
+    if(st != 0)
+      exit(st);
+  }
+  exit(0);
+}
+
+>>>>>>> test-trace-2
 // regression test. does write() with an invalid buffer pointer cause
 // a block to be allocated for a file that is then not freed when the
 // file is deleted? if the kernel has this bug, it will panic: balloc:
@@ -2474,6 +3061,7 @@ badwrite(char *s)
   exit(0);
 }
 
+<<<<<<< HEAD
 // regression test. test whether exec() leaks memory if one of the
 // arguments is invalid. the test passes if the kernel doesn't panic.
 void
@@ -2489,6 +3077,8 @@ badarg(char *s)
   exit(0);
 }
 
+=======
+>>>>>>> test-trace-2
 // test the exec() code that cleans up if it runs out
 // of memory. it's really a test that such a condition
 // doesn't cause a panic.
@@ -2526,6 +3116,177 @@ execout(char *s)
   exit(0);
 }
 
+<<<<<<< HEAD
+=======
+// can the kernel tolerate running out of disk space?
+void
+diskfull(char *s)
+{
+  int fi;
+  int done = 0;
+
+  unlink("diskfulldir");
+  
+  for(fi = 0; done == 0 && '0' + fi < 0177; fi++){
+    char name[32];
+    name[0] = 'b';
+    name[1] = 'i';
+    name[2] = 'g';
+    name[3] = '0' + fi;
+    name[4] = '\0';
+    unlink(name);
+    int fd = open(name, O_CREATE|O_RDWR|O_TRUNC);
+    if(fd < 0){
+      // oops, ran out of inodes before running out of blocks.
+      printf("%s: could not create file %s\n", s, name);
+      done = 1;
+      break;
+    }
+    for(int i = 0; i < MAXFILE; i++){
+      char buf[BSIZE];
+      if(write(fd, buf, BSIZE) != BSIZE){
+        done = 1;
+        close(fd);
+        break;
+      }
+    }
+    close(fd);
+  }
+
+  // now that there are no free blocks, test that dirlink()
+  // merely fails (doesn't panic) if it can't extend
+  // directory content. one of these file creations
+  // is expected to fail.
+  int nzz = 128;
+  for(int i = 0; i < nzz; i++){
+    char name[32];
+    name[0] = 'z';
+    name[1] = 'z';
+    name[2] = '0' + (i / 32);
+    name[3] = '0' + (i % 32);
+    name[4] = '\0';
+    unlink(name);
+    int fd = open(name, O_CREATE|O_RDWR|O_TRUNC);
+    if(fd < 0)
+      break;
+    close(fd);
+  }
+
+  // this mkdir() is expected to fail.
+  if(mkdir("diskfulldir") == 0)
+    printf("%s: mkdir(diskfulldir) unexpectedly succeeded!\n", s);
+
+  unlink("diskfulldir");
+
+  for(int i = 0; i < nzz; i++){
+    char name[32];
+    name[0] = 'z';
+    name[1] = 'z';
+    name[2] = '0' + (i / 32);
+    name[3] = '0' + (i % 32);
+    name[4] = '\0';
+    unlink(name);
+  }
+
+  for(int i = 0; '0' + i < 0177; i++){
+    char name[32];
+    name[0] = 'b';
+    name[1] = 'i';
+    name[2] = 'g';
+    name[3] = '0' + i;
+    name[4] = '\0';
+    unlink(name);
+  }
+}
+
+void
+outofinodes(char *s)
+{
+  int nzz = 32*32;
+  for(int i = 0; i < nzz; i++){
+    char name[32];
+    name[0] = 'z';
+    name[1] = 'z';
+    name[2] = '0' + (i / 32);
+    name[3] = '0' + (i % 32);
+    name[4] = '\0';
+    unlink(name);
+    int fd = open(name, O_CREATE|O_RDWR|O_TRUNC);
+    if(fd < 0){
+      // failure is eventually expected.
+      break;
+    }
+    close(fd);
+  }
+
+  for(int i = 0; i < nzz; i++){
+    char name[32];
+    name[0] = 'z';
+    name[1] = 'z';
+    name[2] = '0' + (i / 32);
+    name[3] = '0' + (i % 32);
+    name[4] = '\0';
+    unlink(name);
+  }
+}
+
+struct test slowtests[] = {
+  {bigdir, "bigdir"},
+  {manywrites, "manywrites"},
+  {badwrite, "badwrite" },
+  {execout, "execout"},
+  {diskfull, "diskfull"},
+  {outofinodes, "outofinodes"},
+    
+  { 0, 0},
+};
+
+//
+// drive tests
+//
+
+// run each test in its own process. run returns 1 if child's exit()
+// indicates success.
+int
+run(void f(char *), char *s) {
+  int pid;
+  int xstatus;
+
+  printf("test %s: ", s);
+  if((pid = fork()) < 0) {
+    printf("runtest: fork error\n");
+    exit(1);
+  }
+  if(pid == 0) {
+    f(s);
+    exit(0);
+  } else {
+    wait(&xstatus);
+    if(xstatus != 0) 
+      printf("FAILED\n");
+    else
+      printf("OK\n");
+    return xstatus == 0;
+  }
+}
+
+int
+runtests(struct test *tests, char *justone, int continuous) {
+  for (struct test *t = tests; t->s != 0; t++) {
+    if((justone == 0) || strcmp(t->s, justone) == 0) {
+      if(!run(t->f, t->s)){
+        if(continuous != 2){
+          printf("SOME TESTS FAILED\n");
+          return 1;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+
+>>>>>>> test-trace-2
 //
 // use sbrk() to count how many free physical memory pages there are.
 // touches the pages to force allocation.
@@ -2592,6 +3353,7 @@ countfree()
   return n;
 }
 
+<<<<<<< HEAD
 // run each test in its own process. run returns 1 if child's exit()
 // indicates success.
 int
@@ -2615,21 +3377,61 @@ run(void f(char *), char *s) {
       printf("OK\n");
     return xstatus == 0;
   }
+=======
+int
+drivetests(int quick, int continuous, char *justone) {
+  do {
+    printf("usertests starting\n");
+    int free0 = countfree();
+    int free1 = 0;
+    if (runtests(quicktests, justone, continuous)) {
+      if(continuous != 2) {
+        return 1;
+      }
+    }
+    if(!quick) {
+      if (justone == 0)
+        printf("usertests slow tests starting\n");
+      if (runtests(slowtests, justone, continuous)) {
+        if(continuous != 2) {
+          return 1;
+        }
+      }
+    }
+    if((free1 = countfree()) < free0) {
+      printf("FAILED -- lost some free pages %d (out of %d)\n", free1, free0);
+      if(continuous != 2) {
+        return 1;
+      }
+    }
+  } while(continuous);
+  return 0;
+>>>>>>> test-trace-2
 }
 
 int
 main(int argc, char *argv[])
 {
   int continuous = 0;
+<<<<<<< HEAD
   char *justone = 0;
 
   if(argc == 2 && strcmp(argv[1], "-c") == 0){
+=======
+  int quick = 0;
+  char *justone = 0;
+
+  if(argc == 2 && strcmp(argv[1], "-q") == 0){
+    quick = 1;
+  } else if(argc == 2 && strcmp(argv[1], "-c") == 0){
+>>>>>>> test-trace-2
     continuous = 1;
   } else if(argc == 2 && strcmp(argv[1], "-C") == 0){
     continuous = 2;
   } else if(argc == 2 && argv[1][0] != '-'){
     justone = argv[1];
   } else if(argc > 1){
+<<<<<<< HEAD
     printf("Usage: usertests [-c] [testname]\n");
     exit(1);
   }
@@ -2743,4 +3545,14 @@ main(int argc, char *argv[])
     printf("ALL TESTS PASSED\n");
     exit(0);
   }
+=======
+    printf("Usage: usertests [-c] [-C] [-q] [testname]\n");
+    exit(1);
+  }
+  if (drivetests(quick, continuous, justone)) {
+    exit(1);
+  }
+  printf("ALL TESTS PASSED\n");
+  exit(0);
+>>>>>>> test-trace-2
 }

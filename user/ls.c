@@ -2,6 +2,10 @@
 #include "kernel/stat.h"
 #include "user/user.h"
 #include "kernel/fs.h"
+<<<<<<< HEAD
+=======
+#include "kernel/fcntl.h"
+>>>>>>> test-trace-2
 
 char*
 fmtname(char *path)
@@ -30,7 +34,11 @@ ls(char *path)
   struct dirent de;
   struct stat st;
 
+<<<<<<< HEAD
   if((fd = open(path, 0)) < 0){
+=======
+  if((fd = open(path, O_RDONLY)) < 0){
+>>>>>>> test-trace-2
     fprintf(2, "ls: cannot open %s\n", path);
     return;
   }
@@ -42,8 +50,14 @@ ls(char *path)
   }
 
   switch(st.type){
+<<<<<<< HEAD
   case T_FILE:
     printf("%s %d %d %l\n", fmtname(path), st.type, st.ino, st.size);
+=======
+  case T_DEVICE:
+  case T_FILE:
+    printf("%s %d %d %d\n", fmtname(path), st.type, st.ino, (int) st.size);
+>>>>>>> test-trace-2
     break;
 
   case T_DIR:
@@ -63,7 +77,11 @@ ls(char *path)
         printf("ls: cannot stat %s\n", buf);
         continue;
       }
+<<<<<<< HEAD
       printf("%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+=======
+      printf("%s %d %d %d\n", fmtname(buf), st.type, st.ino, (int) st.size);
+>>>>>>> test-trace-2
     }
     break;
   }

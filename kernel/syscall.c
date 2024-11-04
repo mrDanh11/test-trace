@@ -12,7 +12,11 @@ int
 fetchaddr(uint64 addr, uint64 *ip)
 {
   struct proc *p = myproc();
+<<<<<<< HEAD
   if(addr >= p->sz || addr+sizeof(uint64) > p->sz)
+=======
+  if(addr >= p->sz || addr+sizeof(uint64) > p->sz) // both tests needed, in case of overflow
+>>>>>>> test-trace-2
     return -1;
   if(copyin(p->pagetable, (char *)ip, addr, sizeof(*ip)) != 0)
     return -1;
@@ -25,9 +29,14 @@ int
 fetchstr(uint64 addr, char *buf, int max)
 {
   struct proc *p = myproc();
+<<<<<<< HEAD
   int err = copyinstr(p->pagetable, buf, addr, max);
   if(err < 0)
     return err;
+=======
+  if(copyinstr(p->pagetable, buf, addr, max) < 0)
+    return -1;
+>>>>>>> test-trace-2
   return strlen(buf);
 }
 
@@ -54,21 +63,35 @@ argraw(int n)
 }
 
 // Fetch the nth 32-bit system call argument.
+<<<<<<< HEAD
 int
 argint(int n, int *ip)
 {
   *ip = argraw(n);
   return 0;
+=======
+void
+argint(int n, int *ip)
+{
+  *ip = argraw(n);
+>>>>>>> test-trace-2
 }
 
 // Retrieve an argument as a pointer.
 // Doesn't check for legality, since
 // copyin/copyout will do that.
+<<<<<<< HEAD
 int
 argaddr(int n, uint64 *ip)
 {
   *ip = argraw(n);
   return 0;
+=======
+void
+argaddr(int n, uint64 *ip)
+{
+  *ip = argraw(n);
+>>>>>>> test-trace-2
 }
 
 // Fetch the nth word-sized system call argument as a null-terminated string.
@@ -78,6 +101,7 @@ int
 argstr(int n, char *buf, int max)
 {
   uint64 addr;
+<<<<<<< HEAD
   if(argaddr(n, &addr) < 0)
     return -1;
   return fetchstr(addr, buf, max);
@@ -107,6 +131,40 @@ extern uint64 sys_uptime(void);
 extern uint64 sys_trace(void);
 extern uint64 sys_sysinfo(void);
 
+=======
+  argaddr(n, &addr);
+  return fetchstr(addr, buf, max);
+}
+
+// Prototypes for the functions that handle system calls.
+extern uint64 sys_fork(void);
+extern uint64 sys_exit(void);
+extern uint64 sys_wait(void);
+extern uint64 sys_pipe(void);
+extern uint64 sys_read(void);
+extern uint64 sys_kill(void);
+extern uint64 sys_exec(void);
+extern uint64 sys_fstat(void);
+extern uint64 sys_chdir(void);
+extern uint64 sys_dup(void);
+extern uint64 sys_getpid(void);
+extern uint64 sys_sbrk(void);
+extern uint64 sys_sleep(void);
+extern uint64 sys_uptime(void);
+extern uint64 sys_open(void);
+extern uint64 sys_write(void);
+extern uint64 sys_mknod(void);
+extern uint64 sys_unlink(void);
+extern uint64 sys_link(void);
+extern uint64 sys_mkdir(void);
+extern uint64 sys_close(void);
+extern uint64 sys_trace(void);
+
+
+
+// An array mapping syscall numbers from syscall.h
+// to the function that handles the system call.
+>>>>>>> test-trace-2
 static uint64 (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
 [SYS_exit]    sys_exit,
@@ -130,6 +188,7 @@ static uint64 (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 [SYS_trace]   sys_trace,
+<<<<<<< HEAD
 [SYS_sysinfo] sys_sysinfo,
 };
 
@@ -158,3 +217,51 @@ syscall(void)
     p->trapframe->a0 = -1;
   }
 }
+=======
+};
+
+char *syscall_names[] = {
+    "fork", "exit", "wait", "pipe", "read", "kill", "exec", "fstat",
+    "chdir", "dup", "getpid", "sbrk", "sleep", "uptime", "open",
+    "write", "mknod", "unlink", "link", "mkdir", "close", "trace" // Đảm bảo có syscall trace ở đây
+};
+
+
+
+// void
+// syscall(void)
+// {
+//   int num;
+//   struct proc *p = myproc();
+
+//   num = p->trapframe->a7;
+//   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
+//     // Use num to lookup the system call function for num, call it,
+//     // and store its return value in p->trapframe->a0
+//     p->trapframe->a0 = syscalls[num]();
+//   } else {
+//     printf("%d %s: unknown sys call %d\n",
+//             p->pid, p->name, num);
+//     p->trapframe->a0 = -1;
+//   }
+// }
+
+void syscall(void) {
+    int num;
+    struct proc *p = myproc();
+
+    num = p->trapframe->a7;  // Lấy số syscall từ trapframe
+    if (num > 0 && num < NELEM(syscalls) && syscalls[num]) {
+        p->trapframe->a0 = syscalls[num]();
+
+        // In ra thông tin syscall nếu trace_mask cho phép
+        if (p->trace_mask & (1 << num)) {
+            printf("%d: syscall %s -> %ld\n", p->pid, syscall_names[num], p->trapframe->a0);
+        }
+    } else {
+        printf("%d %s: unknown sys call %d\n", p->pid, p->name, num);
+        p->trapframe->a0 = -1;
+    }
+}
+
+>>>>>>> test-trace-2

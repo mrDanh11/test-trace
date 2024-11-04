@@ -39,7 +39,11 @@ freerange(void *pa_start, void *pa_end)
     kfree(p);
 }
 
+<<<<<<< HEAD
 // Free the page of physical memory pointed at by v,
+=======
+// Free the page of physical memory pointed at by pa,
+>>>>>>> test-trace-2
 // which normally should have been returned by a
 // call to kalloc().  (The exception is when
 // initializing the allocator; see kinit above.)
@@ -80,6 +84,7 @@ kalloc(void)
     memset((char*)r, 5, PGSIZE); // fill with junk
   return (void*)r;
 }
+<<<<<<< HEAD
 
 // Get the number of bytes of free memory
 uint64
@@ -98,3 +103,5 @@ get_free_memory()
 
   return pages * PGSIZE;
 }
+=======
+>>>>>>> test-trace-2

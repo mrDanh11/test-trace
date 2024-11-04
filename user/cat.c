@@ -1,5 +1,9 @@
 #include "kernel/types.h"
+<<<<<<< HEAD
 #include "kernel/stat.h"
+=======
+#include "kernel/fcntl.h"
+>>>>>>> test-trace-2
 #include "user/user.h"
 
 char buf[512];
@@ -32,7 +36,11 @@ main(int argc, char *argv[])
   }
 
   for(i = 1; i < argc; i++){
+<<<<<<< HEAD
     if((fd = open(argv[i], 0)) < 0){
+=======
+    if((fd = open(argv[i], O_RDONLY)) < 0){
+>>>>>>> test-trace-2
       fprintf(2, "cat: cannot open %s\n", argv[i]);
       exit(1);
     }

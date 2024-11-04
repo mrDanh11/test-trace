@@ -11,6 +11,7 @@ entryother
 initcode
 initcode.out
 kernelmemfs
+<<<<<<< HEAD
 mkfs
 kernel/kernel
 user/usys.S
@@ -21,3 +22,19 @@ xv6.out*
 .vagrant/
 submissions/
 .vscode
+=======
+mkfs/mkfs
+kernel/kernel
+user/usys.S
+.gdbinit
+*.zip
+xv6.out*
+.vagrant/
+submissions/
+ph
+barrier
+/lab-*.json
+.DS_Store
+*.dSYM
+*.pcap
+>>>>>>> test-trace-2

@@ -1,17 +1,34 @@
+<<<<<<< HEAD
 	#
         # interrupts and exceptions while in supervisor
         # mode come here.
         #
         # push all registers, call kerneltrap(), restore, return.
+=======
+        #
+        # interrupts and exceptions while in supervisor
+        # mode come here.
+        #
+        # the current stack is a kernel stack.
+        # push registers, call kerneltrap().
+        # when kerneltrap() returns, restore registers, return.
+>>>>>>> test-trace-2
         #
 .globl kerneltrap
 .globl kernelvec
 .align 4
 kernelvec:
+<<<<<<< HEAD
         // make room to save registers.
         addi sp, sp, -256
 
         // save the registers.
+=======
+        # make room to save registers.
+        addi sp, sp, -256
+
+        # save caller-saved registers.
+>>>>>>> test-trace-2
         sd ra, 0(sp)
         sd sp, 8(sp)
         sd gp, 16(sp)
@@ -19,8 +36,11 @@ kernelvec:
         sd t0, 32(sp)
         sd t1, 40(sp)
         sd t2, 48(sp)
+<<<<<<< HEAD
         sd s0, 56(sp)
         sd s1, 64(sp)
+=======
+>>>>>>> test-trace-2
         sd a0, 72(sp)
         sd a1, 80(sp)
         sd a2, 88(sp)
@@ -29,6 +49,7 @@ kernelvec:
         sd a5, 112(sp)
         sd a6, 120(sp)
         sd a7, 128(sp)
+<<<<<<< HEAD
         sd s2, 136(sp)
         sd s3, 144(sp)
         sd s4, 152(sp)
@@ -39,11 +60,14 @@ kernelvec:
         sd s9, 192(sp)
         sd s10, 200(sp)
         sd s11, 208(sp)
+=======
+>>>>>>> test-trace-2
         sd t3, 216(sp)
         sd t4, 224(sp)
         sd t5, 232(sp)
         sd t6, 240(sp)
 
+<<<<<<< HEAD
 	// call the C trap handler in trap.c
         call kerneltrap
 
@@ -57,6 +81,19 @@ kernelvec:
         ld t2, 48(sp)
         ld s0, 56(sp)
         ld s1, 64(sp)
+=======
+        # call the C trap handler in trap.c
+        call kerneltrap
+
+        # restore registers.
+        ld ra, 0(sp)
+        ld sp, 8(sp)
+        ld gp, 16(sp)
+        # not tp (contains hartid), in case we moved CPUs
+        ld t0, 32(sp)
+        ld t1, 40(sp)
+        ld t2, 48(sp)
+>>>>>>> test-trace-2
         ld a0, 72(sp)
         ld a1, 80(sp)
         ld a2, 88(sp)
@@ -65,6 +102,7 @@ kernelvec:
         ld a5, 112(sp)
         ld a6, 120(sp)
         ld a7, 128(sp)
+<<<<<<< HEAD
         ld s2, 136(sp)
         ld s3, 144(sp)
         ld s4, 152(sp)
@@ -75,6 +113,8 @@ kernelvec:
         ld s9, 192(sp)
         ld s10, 200(sp)
         ld s11, 208(sp)
+=======
+>>>>>>> test-trace-2
         ld t3, 216(sp)
         ld t4, 224(sp)
         ld t5, 232(sp)
@@ -82,6 +122,7 @@ kernelvec:
 
         addi sp, sp, 256
 
+<<<<<<< HEAD
         // return to whatever we were doing in the kernel.
         sret
 
@@ -119,3 +160,7 @@ timervec:
         csrrw a0, mscratch, a0
 
         mret
+=======
+        # return to whatever we were doing in the kernel.
+        sret
+>>>>>>> test-trace-2

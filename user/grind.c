@@ -57,7 +57,11 @@ go(int which_child)
 
   mkdir("grindir");
   if(chdir("grindir") != 0){
+<<<<<<< HEAD
     printf("chdir grindir failed\n");
+=======
+    printf("grind: chdir grindir failed\n");
+>>>>>>> test-trace-2
     exit(1);
   }
   chdir("/");
@@ -75,7 +79,11 @@ go(int which_child)
       unlink("grindir/../a");
     } else if(what == 4){
       if(chdir("grindir") != 0){
+<<<<<<< HEAD
         printf("chdir grindir failed\n");
+=======
+        printf("grind: chdir grindir failed\n");
+>>>>>>> test-trace-2
         exit(1);
       }
       unlink("../b");
@@ -139,7 +147,11 @@ go(int which_child)
         exit(1);
       }
       if(chdir("../grindir/..") != 0){
+<<<<<<< HEAD
         printf("chdir failed\n");
+=======
+        printf("grind: chdir failed\n");
+>>>>>>> test-trace-2
         exit(1);
       }
       kill(pid);
@@ -188,7 +200,11 @@ go(int which_child)
         unlink("x");
         exit(0);
       } else if(pid < 0){
+<<<<<<< HEAD
         printf("fork failed\n");
+=======
+        printf("grind: fork failed\n");
+>>>>>>> test-trace-2
         exit(1);
       }
       wait(0);
@@ -198,15 +214,24 @@ go(int which_child)
       // file descriptors, blocks.
       int fd1 = open("c", O_CREATE|O_RDWR);
       if(fd1 < 0){
+<<<<<<< HEAD
         printf("create c failed\n");
         exit(1);
       }
       if(write(fd1, "x", 1) != 1){
         printf("write c failed\n");
+=======
+        printf("grind: create c failed\n");
+        exit(1);
+      }
+      if(write(fd1, "x", 1) != 1){
+        printf("grind: write c failed\n");
+>>>>>>> test-trace-2
         exit(1);
       }
       struct stat st;
       if(fstat(fd1, &st) != 0){
+<<<<<<< HEAD
         printf("fstat failed\n");
         exit(1);
       }
@@ -216,6 +241,17 @@ go(int which_child)
       }
       if(st.ino > 200){
         printf("fstat reports crazy i-number %d\n", st.ino);
+=======
+        printf("grind: fstat failed\n");
+        exit(1);
+      }
+      if(st.size != 1){
+        printf("grind: fstat reports wrong size %d\n", (int)st.size);
+        exit(1);
+      }
+      if(st.ino > 200){
+        printf("grind: fstat reports crazy i-number %d\n", st.ino);
+>>>>>>> test-trace-2
         exit(1);
       }
       close(fd1);
@@ -224,11 +260,19 @@ go(int which_child)
       // echo hi | cat
       int aa[2], bb[2];
       if(pipe(aa) < 0){
+<<<<<<< HEAD
         fprintf(2, "pipe failed\n");
         exit(1);
       }
       if(pipe(bb) < 0){
         fprintf(2, "pipe failed\n");
+=======
+        fprintf(2, "grind: pipe failed\n");
+        exit(1);
+      }
+      if(pipe(bb) < 0){
+        fprintf(2, "grind: pipe failed\n");
+>>>>>>> test-trace-2
         exit(1);
       }
       int pid1 = fork();
@@ -238,16 +282,27 @@ go(int which_child)
         close(aa[0]);
         close(1);
         if(dup(aa[1]) != 1){
+<<<<<<< HEAD
           fprintf(2, "dup failed\n");
+=======
+          fprintf(2, "grind: dup failed\n");
+>>>>>>> test-trace-2
           exit(1);
         }
         close(aa[1]);
         char *args[3] = { "echo", "hi", 0 };
         exec("grindir/../echo", args);
+<<<<<<< HEAD
         fprintf(2, "echo: not found\n");
         exit(2);
       } else if(pid1 < 0){
         fprintf(2, "fork failed\n");
+=======
+        fprintf(2, "grind: echo: not found\n");
+        exit(2);
+      } else if(pid1 < 0){
+        fprintf(2, "grind: fork failed\n");
+>>>>>>> test-trace-2
         exit(3);
       }
       int pid2 = fork();
@@ -256,36 +311,63 @@ go(int which_child)
         close(bb[0]);
         close(0);
         if(dup(aa[0]) != 0){
+<<<<<<< HEAD
           fprintf(2, "dup failed\n");
+=======
+          fprintf(2, "grind: dup failed\n");
+>>>>>>> test-trace-2
           exit(4);
         }
         close(aa[0]);
         close(1);
         if(dup(bb[1]) != 1){
+<<<<<<< HEAD
           fprintf(2, "dup failed\n");
+=======
+          fprintf(2, "grind: dup failed\n");
+>>>>>>> test-trace-2
           exit(5);
         }
         close(bb[1]);
         char *args[2] = { "cat", 0 };
         exec("/cat", args);
+<<<<<<< HEAD
         fprintf(2, "cat: not found\n");
         exit(6);
       } else if(pid2 < 0){
         fprintf(2, "fork failed\n");
+=======
+        fprintf(2, "grind: cat: not found\n");
+        exit(6);
+      } else if(pid2 < 0){
+        fprintf(2, "grind: fork failed\n");
+>>>>>>> test-trace-2
         exit(7);
       }
       close(aa[0]);
       close(aa[1]);
       close(bb[1]);
+<<<<<<< HEAD
       char buf[3] = { 0, 0, 0 };
       read(bb[0], buf+0, 1);
       read(bb[0], buf+1, 1);
+=======
+      char buf[4] = { 0, 0, 0, 0 };
+      read(bb[0], buf+0, 1);
+      read(bb[0], buf+1, 1);
+      read(bb[0], buf+2, 1);
+>>>>>>> test-trace-2
       close(bb[0]);
       int st1, st2;
       wait(&st1);
       wait(&st2);
+<<<<<<< HEAD
       if(st1 != 0 || st2 != 0 || strcmp(buf, "hi") != 0){
         printf("exec pipeline failed %d %d \"%s\"\n", st1, st2, buf);
+=======
+      if(st1 != 0 || st2 != 0 || strcmp(buf, "hi\n") != 0){
+        printf("grind: exec pipeline failed %d %d \"%s\"\n", st1, st2, buf);
+>>>>>>> test-trace-2
         exit(1);
       }
     }
@@ -304,7 +386,11 @@ iter()
     exit(1);
   }
   if(pid1 == 0){
+<<<<<<< HEAD
     rand_next = 31;
+=======
+    rand_next ^= 31;
+>>>>>>> test-trace-2
     go(0);
     exit(0);
   }
@@ -315,7 +401,11 @@ iter()
     exit(1);
   }
   if(pid2 == 0){
+<<<<<<< HEAD
     rand_next = 7177;
+=======
+    rand_next ^= 7177;
+>>>>>>> test-trace-2
     go(1);
     exit(0);
   }
@@ -345,5 +435,9 @@ main()
       wait(0);
     }
     sleep(20);
+<<<<<<< HEAD
+=======
+    rand_next += 1;
+>>>>>>> test-trace-2
   }
 }

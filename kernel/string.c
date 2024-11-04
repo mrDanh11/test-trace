@@ -33,6 +33,12 @@ memmove(void *dst, const void *src, uint n)
   const char *s;
   char *d;
 
+<<<<<<< HEAD
+=======
+  if(n == 0)
+    return dst;
+  
+>>>>>>> test-trace-2
   s = src;
   d = dst;
   if(s < d && s + n > d){

@@ -16,18 +16,49 @@ int nextpid = 1;
 struct spinlock pid_lock;
 
 extern void forkret(void);
+<<<<<<< HEAD
 static void wakeup1(struct proc *chan);
+=======
+>>>>>>> test-trace-2
 static void freeproc(struct proc *p);
 
 extern char trampoline[]; // trampoline.S
 
+<<<<<<< HEAD
 // initialize the proc table at boot time.
+=======
+// helps ensure that wakeups of wait()ing
+// parents are not lost. helps obey the
+// memory model when using p->parent.
+// must be acquired before any p->lock.
+struct spinlock wait_lock;
+
+// Allocate a page for each process's kernel stack.
+// Map it high in memory, followed by an invalid
+// guard page.
+void
+proc_mapstacks(pagetable_t kpgtbl)
+{
+  struct proc *p;
+  
+  for(p = proc; p < &proc[NPROC]; p++) {
+    char *pa = kalloc();
+    if(pa == 0)
+      panic("kalloc");
+    uint64 va = KSTACK((int) (p - proc));
+    kvmmap(kpgtbl, va, (uint64)pa, PGSIZE, PTE_R | PTE_W);
+  }
+}
+
+// initialize the proc table.
+>>>>>>> test-trace-2
 void
 procinit(void)
 {
   struct proc *p;
   
   initlock(&pid_lock, "nextpid");
+<<<<<<< HEAD
   for(p = proc; p < &proc[NPROC]; p++) {
       initlock(&p->lock, "proc");
 
@@ -42,6 +73,14 @@ procinit(void)
       p->kstack = va;
   }
   kvminithart();
+=======
+  initlock(&wait_lock, "wait_lock");
+  for(p = proc; p < &proc[NPROC]; p++) {
+      initlock(&p->lock, "proc");
+      p->state = UNUSED;
+      p->kstack = KSTACK((int) (p - proc));
+  }
+>>>>>>> test-trace-2
 }
 
 // Must be called with interrupts disabled,
@@ -57,7 +96,12 @@ cpuid()
 // Return this CPU's cpu struct.
 // Interrupts must be disabled.
 struct cpu*
+<<<<<<< HEAD
 mycpu(void) {
+=======
+mycpu(void)
+{
+>>>>>>> test-trace-2
   int id = cpuid();
   struct cpu *c = &cpus[id];
   return c;
@@ -65,7 +109,12 @@ mycpu(void) {
 
 // Return the current struct proc *, or zero if none.
 struct proc*
+<<<<<<< HEAD
 myproc(void) {
+=======
+myproc(void)
+{
+>>>>>>> test-trace-2
   push_off();
   struct cpu *c = mycpu();
   struct proc *p = c->proc;
@@ -74,7 +123,12 @@ myproc(void) {
 }
 
 int
+<<<<<<< HEAD
 allocpid() {
+=======
+allocpid()
+{
+>>>>>>> test-trace-2
   int pid;
   
   acquire(&pid_lock);
@@ -106,9 +160,17 @@ allocproc(void)
 
 found:
   p->pid = allocpid();
+<<<<<<< HEAD
 
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
+=======
+  p->state = USED;
+
+  // Allocate a trapframe page.
+  if((p->trapframe = (struct trapframe *)kalloc()) == 0){
+    freeproc(p);
+>>>>>>> test-trace-2
     release(&p->lock);
     return 0;
   }
@@ -130,6 +192,7 @@ found:
   return p;
 }
 
+<<<<<<< HEAD
 // Get the num of proccesses
 uint64
 get_proccesses_num()
@@ -145,6 +208,8 @@ get_proccesses_num()
   return num;
 }
 
+=======
+>>>>>>> test-trace-2
 // free a proc structure and the data hanging from it,
 // including user pages.
 // p->lock must be held.
@@ -165,6 +230,7 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+<<<<<<< HEAD
 
   // trace
   p->trace_mask = 0;
@@ -172,6 +238,12 @@ freeproc(struct proc *p)
 
 // Create a user page table for a given process,
 // with no user memory, but with trampoline pages.
+=======
+}
+
+// Create a user page table for a given process, with no user memory,
+// but with trampoline and trapframe pages.
+>>>>>>> test-trace-2
 pagetable_t
 proc_pagetable(struct proc *p)
 {
@@ -192,7 +264,12 @@ proc_pagetable(struct proc *p)
     return 0;
   }
 
+<<<<<<< HEAD
   // map the trapframe just below TRAMPOLINE, for trampoline.S.
+=======
+  // map the trapframe page just below the trampoline page, for
+  // trampoline.S.
+>>>>>>> test-trace-2
   if(mappages(pagetable, TRAPFRAME, PGSIZE,
               (uint64)(p->trapframe), PTE_R | PTE_W) < 0){
     uvmunmap(pagetable, TRAMPOLINE, 1, 0);
@@ -214,7 +291,12 @@ proc_freepagetable(pagetable_t pagetable, uint64 sz)
 }
 
 // a user program that calls exec("/init")
+<<<<<<< HEAD
 // od -t xC initcode
+=======
+// assembled from ../user/initcode.S
+// od -t xC ../user/initcode
+>>>>>>> test-trace-2
 uchar initcode[] = {
   0x17, 0x05, 0x00, 0x00, 0x13, 0x05, 0x45, 0x02,
   0x97, 0x05, 0x00, 0x00, 0x93, 0x85, 0x35, 0x02,
@@ -234,9 +316,15 @@ userinit(void)
   p = allocproc();
   initproc = p;
   
+<<<<<<< HEAD
   // allocate one user page and copy init's instructions
   // and data into it.
   uvminit(p->pagetable, initcode, sizeof(initcode));
+=======
+  // allocate one user page and copy initcode's instructions
+  // and data into it.
+  uvmfirst(p->pagetable, initcode, sizeof(initcode));
+>>>>>>> test-trace-2
   p->sz = PGSIZE;
 
   // prepare for the very first "return" from kernel to user.
@@ -256,12 +344,20 @@ userinit(void)
 int
 growproc(int n)
 {
+<<<<<<< HEAD
   uint sz;
+=======
+  uint64 sz;
+>>>>>>> test-trace-2
   struct proc *p = myproc();
 
   sz = p->sz;
   if(n > 0){
+<<<<<<< HEAD
     if((sz = uvmalloc(p->pagetable, sz, sz + n)) == 0) {
+=======
+    if((sz = uvmalloc(p->pagetable, sz, sz + n, PTE_W)) == 0) {
+>>>>>>> test-trace-2
       return -1;
     }
   } else if(n < 0){
@@ -293,14 +389,23 @@ fork(void)
   }
   np->sz = p->sz;
 
+<<<<<<< HEAD
   np->parent = p;
 
+=======
+>>>>>>> test-trace-2
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
 
   // Cause fork to return 0 in the child.
   np->trapframe->a0 = 0;
 
+<<<<<<< HEAD
+=======
+  // Copy trace_mask from parent to child (add)
+  np->trace_mask = p->trace_mask;
+
+>>>>>>> test-trace-2
   // increment reference counts on open file descriptors.
   for(i = 0; i < NOFILE; i++)
     if(p->ofile[i])
@@ -311,24 +416,40 @@ fork(void)
 
   pid = np->pid;
 
+<<<<<<< HEAD
   np->state = RUNNABLE;
 
   // trace
   np->trace_mask = p->trace_mask;
 
+=======
+  release(&np->lock);
+
+  acquire(&wait_lock);
+  np->parent = p;
+  release(&wait_lock);
+
+  acquire(&np->lock);
+  np->state = RUNNABLE;
+>>>>>>> test-trace-2
   release(&np->lock);
 
   return pid;
 }
 
 // Pass p's abandoned children to init.
+<<<<<<< HEAD
 // Caller must hold p->lock.
+=======
+// Caller must hold wait_lock.
+>>>>>>> test-trace-2
 void
 reparent(struct proc *p)
 {
   struct proc *pp;
 
   for(pp = proc; pp < &proc[NPROC]; pp++){
+<<<<<<< HEAD
     // this code uses pp->parent without holding pp->lock.
     // acquiring the lock first could cause a deadlock
     // if pp or a child of pp were also in exit()
@@ -343,6 +464,11 @@ reparent(struct proc *p)
       // the lock on one of init's children (pp). this is why
       // exit() always wakes init (before acquiring any locks).
       release(&pp->lock);
+=======
+    if(pp->parent == p){
+      pp->parent = initproc;
+      wakeup(initproc);
+>>>>>>> test-trace-2
     }
   }
 }
@@ -372,6 +498,7 @@ exit(int status)
   end_op();
   p->cwd = 0;
 
+<<<<<<< HEAD
   // we might re-parent a child to init. we can't be precise about
   // waking up init, since we can't acquire its lock once we've
   // acquired any other proc lock. so wake up init whether that's
@@ -396,17 +523,30 @@ exit(int status)
   acquire(&original_parent->lock);
 
   acquire(&p->lock);
+=======
+  acquire(&wait_lock);
+>>>>>>> test-trace-2
 
   // Give any children to init.
   reparent(p);
 
   // Parent might be sleeping in wait().
+<<<<<<< HEAD
   wakeup1(original_parent);
+=======
+  wakeup(p->parent);
+  
+  acquire(&p->lock);
+>>>>>>> test-trace-2
 
   p->xstate = status;
   p->state = ZOMBIE;
 
+<<<<<<< HEAD
   release(&original_parent->lock);
+=======
+  release(&wait_lock);
+>>>>>>> test-trace-2
 
   // Jump into the scheduler, never to return.
   sched();
@@ -418,6 +558,7 @@ exit(int status)
 int
 wait(uint64 addr)
 {
+<<<<<<< HEAD
   struct proc *np;
   int havekids, pid;
   struct proc *p = myproc();
@@ -425,10 +566,18 @@ wait(uint64 addr)
   // hold p->lock for the whole time to avoid lost
   // wakeups from a child's exit().
   acquire(&p->lock);
+=======
+  struct proc *pp;
+  int havekids, pid;
+  struct proc *p = myproc();
+
+  acquire(&wait_lock);
+>>>>>>> test-trace-2
 
   for(;;){
     // Scan through table looking for exited children.
     havekids = 0;
+<<<<<<< HEAD
     for(np = proc; np < &proc[NPROC]; np++){
       // this code uses np->parent without holding np->lock.
       // acquiring the lock first would cause a deadlock,
@@ -453,17 +602,49 @@ wait(uint64 addr)
           return pid;
         }
         release(&np->lock);
+=======
+    for(pp = proc; pp < &proc[NPROC]; pp++){
+      if(pp->parent == p){
+        // make sure the child isn't still in exit() or swtch().
+        acquire(&pp->lock);
+
+        havekids = 1;
+        if(pp->state == ZOMBIE){
+          // Found one.
+          pid = pp->pid;
+          if(addr != 0 && copyout(p->pagetable, addr, (char *)&pp->xstate,
+                                  sizeof(pp->xstate)) < 0) {
+            release(&pp->lock);
+            release(&wait_lock);
+            return -1;
+          }
+          freeproc(pp);
+          release(&pp->lock);
+          release(&wait_lock);
+          return pid;
+        }
+        release(&pp->lock);
+>>>>>>> test-trace-2
       }
     }
 
     // No point waiting if we don't have any children.
+<<<<<<< HEAD
     if(!havekids || p->killed){
       release(&p->lock);
+=======
+    if(!havekids || killed(p)){
+      release(&wait_lock);
+>>>>>>> test-trace-2
       return -1;
     }
     
     // Wait for a child to exit.
+<<<<<<< HEAD
     sleep(p, &p->lock);  //DOC: wait-sleep
+=======
+    sleep(p, &wait_lock);  //DOC: wait-sleep
+>>>>>>> test-trace-2
   }
 }
 
@@ -479,12 +660,23 @@ scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
+<<<<<<< HEAD
   
   c->proc = 0;
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
     
+=======
+
+  c->proc = 0;
+  for(;;){
+    // The most recent process to run may have had interrupts
+    // turned off; enable them to avoid a deadlock if all
+    // processes are waiting.
+    intr_on();
+
+>>>>>>> test-trace-2
     int found = 0;
     for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
@@ -499,12 +691,19 @@ scheduler(void)
         // Process is done running for now.
         // It should have changed its p->state before coming back.
         c->proc = 0;
+<<<<<<< HEAD
 
+=======
+>>>>>>> test-trace-2
         found = 1;
       }
       release(&p->lock);
     }
     if(found == 0) {
+<<<<<<< HEAD
+=======
+      // nothing to run; stop running on this core until an interrupt.
+>>>>>>> test-trace-2
       intr_on();
       asm volatile("wfi");
     }
@@ -563,8 +762,16 @@ forkret(void)
     // File system initialization must be run in the context of a
     // regular process (e.g., because it calls sleep), and thus cannot
     // be run from main().
+<<<<<<< HEAD
     first = 0;
     fsinit(ROOTDEV);
+=======
+    fsinit(ROOTDEV);
+
+    first = 0;
+    // ensure other cores see first=0.
+    __sync_synchronize();
+>>>>>>> test-trace-2
   }
 
   usertrapret();
@@ -583,10 +790,16 @@ sleep(void *chan, struct spinlock *lk)
   // guaranteed that we won't miss any wakeup
   // (wakeup locks p->lock),
   // so it's okay to release lk.
+<<<<<<< HEAD
   if(lk != &p->lock){  //DOC: sleeplock0
     acquire(&p->lock);  //DOC: sleeplock1
     release(lk);
   }
+=======
+
+  acquire(&p->lock);  //DOC: sleeplock1
+  release(lk);
+>>>>>>> test-trace-2
 
   // Go to sleep.
   p->chan = chan;
@@ -598,10 +811,15 @@ sleep(void *chan, struct spinlock *lk)
   p->chan = 0;
 
   // Reacquire original lock.
+<<<<<<< HEAD
   if(lk != &p->lock){
     release(&p->lock);
     acquire(lk);
   }
+=======
+  release(&p->lock);
+  acquire(lk);
+>>>>>>> test-trace-2
 }
 
 // Wake up all processes sleeping on chan.
@@ -612,6 +830,7 @@ wakeup(void *chan)
   struct proc *p;
 
   for(p = proc; p < &proc[NPROC]; p++) {
+<<<<<<< HEAD
     acquire(&p->lock);
     if(p->state == SLEEPING && p->chan == chan) {
       p->state = RUNNABLE;
@@ -629,6 +848,15 @@ wakeup1(struct proc *p)
     panic("wakeup1");
   if(p->chan == p && p->state == SLEEPING) {
     p->state = RUNNABLE;
+=======
+    if(p != myproc()){
+      acquire(&p->lock);
+      if(p->state == SLEEPING && p->chan == chan) {
+        p->state = RUNNABLE;
+      }
+      release(&p->lock);
+    }
+>>>>>>> test-trace-2
   }
 }
 
@@ -656,6 +884,28 @@ kill(int pid)
   return -1;
 }
 
+<<<<<<< HEAD
+=======
+void
+setkilled(struct proc *p)
+{
+  acquire(&p->lock);
+  p->killed = 1;
+  release(&p->lock);
+}
+
+int
+killed(struct proc *p)
+{
+  int k;
+  
+  acquire(&p->lock);
+  k = p->killed;
+  release(&p->lock);
+  return k;
+}
+
+>>>>>>> test-trace-2
 // Copy to either a user address, or kernel address,
 // depending on usr_dst.
 // Returns 0 on success, -1 on error.
@@ -694,6 +944,10 @@ procdump(void)
 {
   static char *states[] = {
   [UNUSED]    "unused",
+<<<<<<< HEAD
+=======
+  [USED]      "used",
+>>>>>>> test-trace-2
   [SLEEPING]  "sleep ",
   [RUNNABLE]  "runble",
   [RUNNING]   "run   ",

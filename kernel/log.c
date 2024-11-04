@@ -66,7 +66,11 @@ initlog(int dev, struct superblock *sb)
 
 // Copy committed blocks from log to their home location
 static void
+<<<<<<< HEAD
 install_trans(void)
+=======
+install_trans(int recovering)
+>>>>>>> test-trace-2
 {
   int tail;
 
@@ -75,7 +79,12 @@ install_trans(void)
     struct buf *dbuf = bread(log.dev, log.lh.block[tail]); // read dst
     memmove(dbuf->data, lbuf->data, BSIZE);  // copy block to dst
     bwrite(dbuf);  // write dst to disk
+<<<<<<< HEAD
     bunpin(dbuf);
+=======
+    if(recovering == 0)
+      bunpin(dbuf);
+>>>>>>> test-trace-2
     brelse(lbuf);
     brelse(dbuf);
   }
@@ -116,7 +125,11 @@ static void
 recover_from_log(void)
 {
   read_head();
+<<<<<<< HEAD
   install_trans(); // if committed, copy from log to disk
+=======
+  install_trans(1); // if committed, copy from log to disk
+>>>>>>> test-trace-2
   log.lh.n = 0;
   write_head(); // clear the log
 }
@@ -195,7 +208,11 @@ commit()
   if (log.lh.n > 0) {
     write_log();     // Write modified blocks from cache to log
     write_head();    // Write header to disk -- the real commit
+<<<<<<< HEAD
     install_trans(); // Now install writes to home locations
+=======
+    install_trans(0); // Now install writes to home locations
+>>>>>>> test-trace-2
     log.lh.n = 0;
     write_head();    // Erase the transaction from the log
   }
@@ -215,14 +232,23 @@ log_write(struct buf *b)
 {
   int i;
 
+<<<<<<< HEAD
+=======
+  acquire(&log.lock);
+>>>>>>> test-trace-2
   if (log.lh.n >= LOGSIZE || log.lh.n >= log.size - 1)
     panic("too big a transaction");
   if (log.outstanding < 1)
     panic("log_write outside of trans");
 
+<<<<<<< HEAD
   acquire(&log.lock);
   for (i = 0; i < log.lh.n; i++) {
     if (log.lh.block[i] == b->blockno)   // log absorbtion
+=======
+  for (i = 0; i < log.lh.n; i++) {
+    if (log.lh.block[i] == b->blockno)   // log absorption
+>>>>>>> test-trace-2
       break;
   }
   log.lh.block[i] = b->blockno;

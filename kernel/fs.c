@@ -61,6 +61,10 @@ bzero(int dev, int bno)
 // Blocks.
 
 // Allocate a zeroed disk block.
+<<<<<<< HEAD
+=======
+// returns 0 if out of disk space.
+>>>>>>> test-trace-2
 static uint
 balloc(uint dev)
 {
@@ -82,7 +86,12 @@ balloc(uint dev)
     }
     brelse(bp);
   }
+<<<<<<< HEAD
   panic("balloc: out of blocks");
+=======
+  printf("balloc: out of blocks\n");
+  return 0;
+>>>>>>> test-trace-2
 }
 
 // Free a disk block.
@@ -109,6 +118,7 @@ bfree(int dev, uint b)
 // its size, the number of links referring to it, and the
 // list of blocks holding the file's content.
 //
+<<<<<<< HEAD
 // The inodes are laid out sequentially on disk at
 // sb.startinode. Each inode has a number, indicating its
 // position on the disk.
@@ -116,6 +126,15 @@ bfree(int dev, uint b)
 // The kernel keeps a cache of in-use inodes in memory
 // to provide a place for synchronizing access
 // to inodes used by multiple processes. The cached
+=======
+// The inodes are laid out sequentially on disk at block
+// sb.inodestart. Each inode has a number, indicating its
+// position on the disk.
+//
+// The kernel keeps a table of in-use inodes in memory
+// to provide a place for synchronizing access
+// to inodes used by multiple processes. The in-memory
+>>>>>>> test-trace-2
 // inodes include book-keeping information that is
 // not stored on disk: ip->ref and ip->valid.
 //
@@ -127,6 +146,7 @@ bfree(int dev, uint b)
 //   is non-zero. ialloc() allocates, and iput() frees if
 //   the reference and link counts have fallen to zero.
 //
+<<<<<<< HEAD
 // * Referencing in cache: an entry in the inode cache
 //   is free if ip->ref is zero. Otherwise ip->ref tracks
 //   the number of in-memory pointers to the entry (open
@@ -136,6 +156,17 @@ bfree(int dev, uint b)
 //
 // * Valid: the information (type, size, &c) in an inode
 //   cache entry is only correct when ip->valid is 1.
+=======
+// * Referencing in table: an entry in the inode table
+//   is free if ip->ref is zero. Otherwise ip->ref tracks
+//   the number of in-memory pointers to the entry (open
+//   files and current directories). iget() finds or
+//   creates a table entry and increments its ref; iput()
+//   decrements ref.
+//
+// * Valid: the information (type, size, &c) in an inode
+//   table entry is only correct when ip->valid is 1.
+>>>>>>> test-trace-2
 //   ilock() reads the inode from
 //   the disk and sets ip->valid, while iput() clears
 //   ip->valid if ip->ref has fallen to zero.
@@ -156,16 +187,27 @@ bfree(int dev, uint b)
 // and only lock it for short periods (e.g., in read()).
 // The separation also helps avoid deadlock and races during
 // pathname lookup. iget() increments ip->ref so that the inode
+<<<<<<< HEAD
 // stays cached and pointers to it remain valid.
+=======
+// stays in the table and pointers to it remain valid.
+>>>>>>> test-trace-2
 //
 // Many internal file system functions expect the caller to
 // have locked the inodes involved; this lets callers create
 // multi-step atomic operations.
 //
+<<<<<<< HEAD
 // The icache.lock spin-lock protects the allocation of icache
 // entries. Since ip->ref indicates whether an entry is free,
 // and ip->dev and ip->inum indicate which i-node an entry
 // holds, one must hold icache.lock while using any of those fields.
+=======
+// The itable.lock spin-lock protects the allocation of itable
+// entries. Since ip->ref indicates whether an entry is free,
+// and ip->dev and ip->inum indicate which i-node an entry
+// holds, one must hold itable.lock while using any of those fields.
+>>>>>>> test-trace-2
 //
 // An ip->lock sleep-lock protects all ip-> fields other than ref,
 // dev, and inum.  One must hold ip->lock in order to
@@ -174,16 +216,26 @@ bfree(int dev, uint b)
 struct {
   struct spinlock lock;
   struct inode inode[NINODE];
+<<<<<<< HEAD
 } icache;
+=======
+} itable;
+>>>>>>> test-trace-2
 
 void
 iinit()
 {
   int i = 0;
   
+<<<<<<< HEAD
   initlock(&icache.lock, "icache");
   for(i = 0; i < NINODE; i++) {
     initsleeplock(&icache.inode[i].lock, "inode");
+=======
+  initlock(&itable.lock, "itable");
+  for(i = 0; i < NINODE; i++) {
+    initsleeplock(&itable.inode[i].lock, "inode");
+>>>>>>> test-trace-2
   }
 }
 
@@ -191,7 +243,12 @@ static struct inode* iget(uint dev, uint inum);
 
 // Allocate an inode on device dev.
 // Mark it as allocated by  giving it type type.
+<<<<<<< HEAD
 // Returns an unlocked but allocated and referenced inode.
+=======
+// Returns an unlocked but allocated and referenced inode,
+// or NULL if there is no free inode.
+>>>>>>> test-trace-2
 struct inode*
 ialloc(uint dev, short type)
 {
@@ -211,12 +268,21 @@ ialloc(uint dev, short type)
     }
     brelse(bp);
   }
+<<<<<<< HEAD
   panic("ialloc: no inodes");
+=======
+  printf("ialloc: no inodes\n");
+  return 0;
+>>>>>>> test-trace-2
 }
 
 // Copy a modified in-memory inode to disk.
 // Must be called after every change to an ip->xxx field
+<<<<<<< HEAD
 // that lives on disk, since i-node cache is write-through.
+=======
+// that lives on disk.
+>>>>>>> test-trace-2
 // Caller must hold ip->lock.
 void
 iupdate(struct inode *ip)
@@ -244,6 +310,7 @@ iget(uint dev, uint inum)
 {
   struct inode *ip, *empty;
 
+<<<<<<< HEAD
   acquire(&icache.lock);
 
   // Is the inode already cached?
@@ -252,13 +319,27 @@ iget(uint dev, uint inum)
     if(ip->ref > 0 && ip->dev == dev && ip->inum == inum){
       ip->ref++;
       release(&icache.lock);
+=======
+  acquire(&itable.lock);
+
+  // Is the inode already in the table?
+  empty = 0;
+  for(ip = &itable.inode[0]; ip < &itable.inode[NINODE]; ip++){
+    if(ip->ref > 0 && ip->dev == dev && ip->inum == inum){
+      ip->ref++;
+      release(&itable.lock);
+>>>>>>> test-trace-2
       return ip;
     }
     if(empty == 0 && ip->ref == 0)    // Remember empty slot.
       empty = ip;
   }
 
+<<<<<<< HEAD
   // Recycle an inode cache entry.
+=======
+  // Recycle an inode entry.
+>>>>>>> test-trace-2
   if(empty == 0)
     panic("iget: no inodes");
 
@@ -267,7 +348,11 @@ iget(uint dev, uint inum)
   ip->inum = inum;
   ip->ref = 1;
   ip->valid = 0;
+<<<<<<< HEAD
   release(&icache.lock);
+=======
+  release(&itable.lock);
+>>>>>>> test-trace-2
 
   return ip;
 }
@@ -277,9 +362,15 @@ iget(uint dev, uint inum)
 struct inode*
 idup(struct inode *ip)
 {
+<<<<<<< HEAD
   acquire(&icache.lock);
   ip->ref++;
   release(&icache.lock);
+=======
+  acquire(&itable.lock);
+  ip->ref++;
+  release(&itable.lock);
+>>>>>>> test-trace-2
   return ip;
 }
 
@@ -323,7 +414,11 @@ iunlock(struct inode *ip)
 }
 
 // Drop a reference to an in-memory inode.
+<<<<<<< HEAD
 // If that was the last reference, the inode cache entry can
+=======
+// If that was the last reference, the inode table entry can
+>>>>>>> test-trace-2
 // be recycled.
 // If that was the last reference and the inode has no links
 // to it, free the inode (and its content) on disk.
@@ -332,7 +427,11 @@ iunlock(struct inode *ip)
 void
 iput(struct inode *ip)
 {
+<<<<<<< HEAD
   acquire(&icache.lock);
+=======
+  acquire(&itable.lock);
+>>>>>>> test-trace-2
 
   if(ip->ref == 1 && ip->valid && ip->nlink == 0){
     // inode has no links and no other references: truncate and free.
@@ -341,7 +440,11 @@ iput(struct inode *ip)
     // so this acquiresleep() won't block (or deadlock).
     acquiresleep(&ip->lock);
 
+<<<<<<< HEAD
     release(&icache.lock);
+=======
+    release(&itable.lock);
+>>>>>>> test-trace-2
 
     itrunc(ip);
     ip->type = 0;
@@ -350,11 +453,19 @@ iput(struct inode *ip)
 
     releasesleep(&ip->lock);
 
+<<<<<<< HEAD
     acquire(&icache.lock);
   }
 
   ip->ref--;
   release(&icache.lock);
+=======
+    acquire(&itable.lock);
+  }
+
+  ip->ref--;
+  release(&itable.lock);
+>>>>>>> test-trace-2
 }
 
 // Common idiom: unlock, then put.
@@ -374,6 +485,10 @@ iunlockput(struct inode *ip)
 
 // Return the disk block address of the nth block in inode ip.
 // If there is no such block, bmap allocates one.
+<<<<<<< HEAD
+=======
+// returns 0 if out of disk space.
+>>>>>>> test-trace-2
 static uint
 bmap(struct inode *ip, uint bn)
 {
@@ -381,14 +496,24 @@ bmap(struct inode *ip, uint bn)
   struct buf *bp;
 
   if(bn < NDIRECT){
+<<<<<<< HEAD
     if((addr = ip->addrs[bn]) == 0)
       ip->addrs[bn] = addr = balloc(ip->dev);
+=======
+    if((addr = ip->addrs[bn]) == 0){
+      addr = balloc(ip->dev);
+      if(addr == 0)
+        return 0;
+      ip->addrs[bn] = addr;
+    }
+>>>>>>> test-trace-2
     return addr;
   }
   bn -= NDIRECT;
 
   if(bn < NINDIRECT){
     // Load indirect block, allocating if necessary.
+<<<<<<< HEAD
     if((addr = ip->addrs[NDIRECT]) == 0)
       ip->addrs[NDIRECT] = addr = balloc(ip->dev);
     bp = bread(ip->dev, addr);
@@ -396,6 +521,22 @@ bmap(struct inode *ip, uint bn)
     if((addr = a[bn]) == 0){
       a[bn] = addr = balloc(ip->dev);
       log_write(bp);
+=======
+    if((addr = ip->addrs[NDIRECT]) == 0){
+      addr = balloc(ip->dev);
+      if(addr == 0)
+        return 0;
+      ip->addrs[NDIRECT] = addr;
+    }
+    bp = bread(ip->dev, addr);
+    a = (uint*)bp->data;
+    if((addr = a[bn]) == 0){
+      addr = balloc(ip->dev);
+      if(addr){
+        a[bn] = addr;
+        log_write(bp);
+      }
+>>>>>>> test-trace-2
     }
     brelse(bp);
     return addr;
@@ -464,10 +605,21 @@ readi(struct inode *ip, int user_dst, uint64 dst, uint off, uint n)
     n = ip->size - off;
 
   for(tot=0; tot<n; tot+=m, off+=m, dst+=m){
+<<<<<<< HEAD
     bp = bread(ip->dev, bmap(ip, off/BSIZE));
     m = min(n - tot, BSIZE - off%BSIZE);
     if(either_copyout(user_dst, dst, bp->data + (off % BSIZE), m) == -1) {
       brelse(bp);
+=======
+    uint addr = bmap(ip, off/BSIZE);
+    if(addr == 0)
+      break;
+    bp = bread(ip->dev, addr);
+    m = min(n - tot, BSIZE - off%BSIZE);
+    if(either_copyout(user_dst, dst, bp->data + (off % BSIZE), m) == -1) {
+      brelse(bp);
+      tot = -1;
+>>>>>>> test-trace-2
       break;
     }
     brelse(bp);
@@ -479,6 +631,12 @@ readi(struct inode *ip, int user_dst, uint64 dst, uint off, uint n)
 // Caller must hold ip->lock.
 // If user_src==1, then src is a user virtual address;
 // otherwise, src is a kernel address.
+<<<<<<< HEAD
+=======
+// Returns the number of bytes successfully written.
+// If the return value is less than the requested n,
+// there was an error of some kind.
+>>>>>>> test-trace-2
 int
 writei(struct inode *ip, int user_src, uint64 src, uint off, uint n)
 {
@@ -491,7 +649,14 @@ writei(struct inode *ip, int user_src, uint64 src, uint off, uint n)
     return -1;
 
   for(tot=0; tot<n; tot+=m, off+=m, src+=m){
+<<<<<<< HEAD
     bp = bread(ip->dev, bmap(ip, off/BSIZE));
+=======
+    uint addr = bmap(ip, off/BSIZE);
+    if(addr == 0)
+      break;
+    bp = bread(ip->dev, addr);
+>>>>>>> test-trace-2
     m = min(n - tot, BSIZE - off%BSIZE);
     if(either_copyin(bp->data + (off % BSIZE), user_src, src, m) == -1) {
       brelse(bp);
@@ -501,6 +666,7 @@ writei(struct inode *ip, int user_src, uint64 src, uint off, uint n)
     brelse(bp);
   }
 
+<<<<<<< HEAD
   if(n > 0){
     if(off > ip->size)
       ip->size = off;
@@ -511,6 +677,17 @@ writei(struct inode *ip, int user_src, uint64 src, uint off, uint n)
   }
 
   return n;
+=======
+  if(off > ip->size)
+    ip->size = off;
+
+  // write the i-node back to disk even if the size didn't change
+  // because the loop above might have called bmap() and added a new
+  // block to ip->addrs[].
+  iupdate(ip);
+
+  return tot;
+>>>>>>> test-trace-2
 }
 
 // Directories
@@ -550,6 +727,10 @@ dirlookup(struct inode *dp, char *name, uint *poff)
 }
 
 // Write a new directory entry (name, inum) into the directory dp.
+<<<<<<< HEAD
+=======
+// Returns 0 on success, -1 on failure (e.g. out of disk blocks).
+>>>>>>> test-trace-2
 int
 dirlink(struct inode *dp, char *name, uint inum)
 {
@@ -574,7 +755,11 @@ dirlink(struct inode *dp, char *name, uint inum)
   strncpy(de.name, name, DIRSIZ);
   de.inum = inum;
   if(writei(dp, 0, (uint64)&de, off, sizeof(de)) != sizeof(de))
+<<<<<<< HEAD
     panic("dirlink");
+=======
+    return -1;
+>>>>>>> test-trace-2
 
   return 0;
 }

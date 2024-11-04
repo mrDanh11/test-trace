@@ -1,6 +1,11 @@
 
+<<<<<<< HEAD
 # To compile and run with a lab solution, set the lab name in lab.mk
 # (e.g., LB=util).  Run make grade to test solution with the lab's
+=======
+# To compile and run with a lab solution, set the lab name in conf/lab.mk
+# (e.g., LAB=util).  Run make grade to test solution with the lab's
+>>>>>>> test-trace-2
 # grade script (e.g., grade-lab-util).
 
 -include conf/lab.mk
@@ -10,12 +15,16 @@ U=user
 
 OBJS = \
   $K/entry.o \
+<<<<<<< HEAD
   $K/start.o \
   $K/console.o \
   $K/printf.o \
   $K/uart.o \
   $K/kalloc.o \
   $K/spinlock.o \
+=======
+  $K/kalloc.o \
+>>>>>>> test-trace-2
   $K/string.o \
   $K/main.o \
   $K/vm.o \
@@ -35,12 +44,44 @@ OBJS = \
   $K/sysfile.o \
   $K/kernelvec.o \
   $K/plic.o \
+<<<<<<< HEAD
   $K/virtio_disk.o \
 
 ifeq ($(LAB),pgtbl)
 OBJS += $K/vmcopyin.o
 endif
 
+=======
+  $K/virtio_disk.o
+
+OBJS_KCSAN = \
+  $K/start.o \
+  $K/console.o \
+  $K/printf.o \
+  $K/uart.o \
+  $K/spinlock.o
+
+ifdef KCSAN
+OBJS_KCSAN += \
+	$K/kcsan.o
+endif
+
+ifeq ($(LAB),lock)
+OBJS += \
+	$K/stats.o\
+	$K/sprintf.o
+endif
+
+
+ifeq ($(LAB),net)
+OBJS += \
+	$K/e1000.o \
+	$K/net.o \
+	$K/pci.o
+endif
+
+
+>>>>>>> test-trace-2
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
 #TOOLPREFIX = 
@@ -67,6 +108,7 @@ LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 
+<<<<<<< HEAD
 CFLAGS = -Wall -Werror -O -fno-omit-frame-pointer -ggdb
 
 ifdef LAB
@@ -80,6 +122,38 @@ CFLAGS += -ffreestanding -fno-common -nostdlib -mno-relax
 CFLAGS += -I.
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 
+=======
+CFLAGS = -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2
+
+ifdef LAB
+LABUPPER = $(shell echo $(LAB) | tr a-z A-Z)
+XCFLAGS += -DSOL_$(LABUPPER) -DLAB_$(LABUPPER)
+endif
+
+CFLAGS += $(XCFLAGS)
+CFLAGS += -MD
+CFLAGS += -mcmodel=medany
+# CFLAGS += -ffreestanding -fno-common -nostdlib -mno-relax
+CFLAGS += -fno-common -nostdlib
+CFLAGS += -fno-builtin-strncpy -fno-builtin-strncmp -fno-builtin-strlen -fno-builtin-memset
+CFLAGS += -fno-builtin-memmove -fno-builtin-memcmp -fno-builtin-log -fno-builtin-bzero
+CFLAGS += -fno-builtin-strchr -fno-builtin-exit -fno-builtin-malloc -fno-builtin-putc
+CFLAGS += -fno-builtin-free
+CFLAGS += -fno-builtin-memcpy -Wno-main
+CFLAGS += -fno-builtin-printf -fno-builtin-fprintf -fno-builtin-vprintf
+CFLAGS += -I.
+CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
+
+ifeq ($(LAB),net)
+CFLAGS += -DNET_TESTS_PORT=$(SERVERPORT)
+endif
+
+ifdef KCSAN
+CFLAGS += -DKCSAN
+KCSANFLAG = -fsanitize=thread -fno-inline
+endif
+
+>>>>>>> test-trace-2
 # Disable PIE when possible (for Ubuntu 16.10 toolchain)
 ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]no-pie'),)
 CFLAGS += -fno-pie -no-pie
@@ -90,11 +164,25 @@ endif
 
 LDFLAGS = -z max-page-size=4096
 
+<<<<<<< HEAD
 $K/kernel: $(OBJS) $K/kernel.ld $U/initcode
 	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS) 
 	$(OBJDUMP) -S $K/kernel > $K/kernel.asm
 	$(OBJDUMP) -t $K/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
 
+=======
+$K/kernel: $(OBJS) $(OBJS_KCSAN) $K/kernel.ld $U/initcode
+	$(LD) $(LDFLAGS) -T $K/kernel.ld -o $K/kernel $(OBJS) $(OBJS_KCSAN)
+	$(OBJDUMP) -S $K/kernel > $K/kernel.asm
+	$(OBJDUMP) -t $K/kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $K/kernel.sym
+
+$(OBJS): EXTRAFLAG := $(KCSANFLAG)
+
+$K/%.o: $K/%.c
+	$(CC) $(CFLAGS) $(EXTRAFLAG) -c -o $@ $<
+
+
+>>>>>>> test-trace-2
 $U/initcode: $U/initcode.S
 	$(CC) $(CFLAGS) -march=rv64g -nostdinc -I. -Ikernel -c $U/initcode.S -o $U/initcode.o
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0 -o $U/initcode.out $U/initcode.o
@@ -106,8 +194,17 @@ tags: $(OBJS) _init
 
 ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o
 
+<<<<<<< HEAD
 _%: %.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
+=======
+ifeq ($(LAB),lock)
+ULIB += $U/statistics.o
+endif
+
+_%: %.o $(ULIB)
+	$(LD) $(LDFLAGS) -T $U/user.ld -o $@ $^
+>>>>>>> test-trace-2
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
 
@@ -124,7 +221,11 @@ $U/_forktest: $U/forktest.o $(ULIB)
 	$(OBJDUMP) -S $U/_forktest > $U/forktest.asm
 
 mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
+<<<<<<< HEAD
 	gcc -Werror -Wall -I. -o mkfs/mkfs mkfs/mkfs.c
+=======
+	gcc $(XCFLAGS) -Werror -Wall -I. -o mkfs/mkfs mkfs/mkfs.c
+>>>>>>> test-trace-2
 
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
 # that disk image changes after first build are persistent until clean.  More
@@ -150,6 +251,7 @@ UPROGS=\
 	$U/_wc\
 	$U/_zombie\
 	$U/_trace\
+<<<<<<< HEAD
 	$U/_sysinfotest
 
 
@@ -158,6 +260,28 @@ ifeq ($(LAB),trap)
 UPROGS += \
 	$U/_call\
 	$U/_alarmtest
+=======
+
+
+
+
+ifeq ($(LAB),syscall)
+UPROGS += \
+	$U/_attack\
+	$U/_attacktest\
+	$U/_secret
+endif
+
+ifeq ($(LAB),lock)
+UPROGS += \
+	$U/_stats
+endif
+
+ifeq ($(LAB),traps)
+UPROGS += \
+	$U/_call\
+	$U/_bttest
+>>>>>>> test-trace-2
 endif
 
 ifeq ($(LAB),lazy)
@@ -170,16 +294,65 @@ UPROGS += \
 	$U/_cowtest
 endif
 
+<<<<<<< HEAD
+=======
+ifeq ($(LAB),thread)
+UPROGS += \
+	$U/_uthread
+
+$U/uthread_switch.o : $U/uthread_switch.S
+	$(CC) $(CFLAGS) -c -o $U/uthread_switch.o $U/uthread_switch.S
+
+$U/_uthread: $U/uthread.o $U/uthread_switch.o $(ULIB)
+	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $U/_uthread $U/uthread.o $U/uthread_switch.o $(ULIB)
+	$(OBJDUMP) -S $U/_uthread > $U/uthread.asm
+
+ph: notxv6/ph.c
+	gcc -o ph -g -O2 $(XCFLAGS) notxv6/ph.c -pthread
+
+barrier: notxv6/barrier.c
+	gcc -o barrier -g -O2 $(XCFLAGS) notxv6/barrier.c -pthread
+endif
+
+ifeq ($(LAB),pgtbl)
+UPROGS += \
+	$U/_pgtbltest
+endif
+
+ifeq ($(LAB),lock)
+UPROGS += \
+	$U/_kalloctest\
+	$U/_bcachetest
+endif
+
+ifeq ($(LAB),fs)
+UPROGS += \
+	$U/_bigfile
+endif
+
+
+
+ifeq ($(LAB),net)
+UPROGS += \
+	$U/_nettest
+endif
+
+>>>>>>> test-trace-2
 UEXTRA=
 ifeq ($(LAB),util)
 	UEXTRA += user/xargstest.sh
 endif
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> test-trace-2
 fs.img: mkfs/mkfs README $(UEXTRA) $(UPROGS)
 	mkfs/mkfs fs.img README $(UEXTRA) $(UPROGS)
 
 -include kernel/*.d user/*.d
 
+<<<<<<< HEAD
 clean: 
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*/*.o */*.d */*.asm */*.sym \
@@ -187,6 +360,15 @@ clean:
 	mkfs/mkfs .gdbinit \
         $U/usys.S \
 	$(UPROGS)
+=======
+clean:
+	rm -rf *.tex *.dvi *.idx *.aux *.log *.ind *.ilg *.dSYM *.zip *.pcap \
+	*/*.o */*.d */*.asm */*.sym \
+	$U/initcode $U/initcode.out $U/usys.S $U/_* \
+	$K/kernel \
+	mkfs/mkfs fs.img .gdbinit __pycache__ xv6.out* \
+	ph barrier
+>>>>>>> test-trace-2
 
 # try to generate a unique GDB port
 GDBPORT = $(shell expr `id -u` % 5000 + 25000)
@@ -197,11 +379,31 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 ifndef CPUS
 CPUS := 3
 endif
+<<<<<<< HEAD
 
 QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS) -nographic
 QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 
+=======
+ifeq ($(LAB),fs)
+CPUS := 1
+endif
+
+FWDPORT1 = $(shell expr `id -u` % 5000 + 25999)
+FWDPORT2 = $(shell expr `id -u` % 5000 + 30999)
+
+QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS) -nographic
+QEMUOPTS += -global virtio-mmio.force-legacy=false
+QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
+QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
+
+ifeq ($(LAB),net)
+QEMUOPTS += -netdev user,id=net0,hostfwd=udp::$(FWDPORT1)-:2000,hostfwd=udp::$(FWDPORT2)-:2001 -object filter-dump,id=net0,netdev=net0,file=packets.pcap
+QEMUOPTS += -device e1000,netdev=net0,bus=pcie.0
+endif
+
+>>>>>>> test-trace-2
 qemu: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS)
 
@@ -212,6 +414,15 @@ qemu-gdb: $K/kernel .gdbinit fs.img
 	@echo "*** Now run 'gdb' in another window." 1>&2
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
 
+<<<<<<< HEAD
+=======
+ifeq ($(LAB),net)
+# try to generate a unique port for the echo server
+SERVERPORT = $(shell expr `id -u` % 5000 + 25099)
+
+endif
+
+>>>>>>> test-trace-2
 ##
 ##  FOR testing lab grading script
 ##
@@ -230,6 +441,7 @@ grade:
 	./grade-lab-$(LAB) $(GRADEFLAGS)
 
 ##
+<<<<<<< HEAD
 ## FOR web handin
 ##
 
@@ -245,6 +457,12 @@ handin: tarball-pref myapi.key
 		echo Please go to $(WEBSUB)/ and upload the tarball manually.; }
 
 handin-check:
+=======
+## FOR submissions
+##
+
+submit-check:
+>>>>>>> test-trace-2
 	@if ! test -d .git; then \
 		echo No .git directory, is this a git repository?; \
 		false; \
@@ -266,6 +484,7 @@ handin-check:
 		test "$$r" = y; \
 	fi
 
+<<<<<<< HEAD
 UPSTREAM := $(shell git remote -v | grep -m 1 "xv6-labs-2020" | awk '{split($$0,a," "); print a[1]}')
 
 tarball: handin-check
@@ -300,3 +519,9 @@ myapi.key:
 
 
 .PHONY: handin tarball tarball-pref clean grade handin-check
+=======
+zipball: clean submit-check
+	git archive --verbose --format zip --output lab.zip HEAD
+
+.PHONY: zipball clean grade submit-check
+>>>>>>> test-trace-2
